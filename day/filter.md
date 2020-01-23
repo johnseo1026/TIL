@@ -138,13 +138,9 @@ cv2.imwrite("output2.png", filtered2)
     0
     255
 
-
-
-
-
     True
 
-
+![image-20200123114706620](images/image-20200123114706620.png)
 
 
 ```python
@@ -160,11 +156,9 @@ cv2.imwrite("output3.png", filtered)
 ```
 
 
-
-
     True
 
-
+![image-20200123114750099](images/image-20200123114750099.png)
 
 
 ```python
@@ -179,12 +173,7 @@ cv2.imwrite("output4.png", filtered)
 
 ```
 
-
-
-
-    True
-
-
+![image-20200123130910176](images/image-20200123130910176.png)
 
 # gaussianblur + 엣지필터
 
@@ -195,11 +184,7 @@ gauss = cv2.GaussianBlur(img, (25,25),0)
 plt.imshow(np.hstack([img, gauss]))
 ```
 
-
-
-
-
-
+![image-20200123130929610](images/image-20200123130929610.png)
 
 ```python
 out1 = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3)
@@ -207,15 +192,7 @@ out2 = cv2.Sobel(gauss, cv2.CV_64F, 1, 0, ksize=3)
 plt.imshow(np.hstack([out1, out2]))
 ```
 
-
-
-
-
-
-
-
-
-
+![image-20200123130941370](images/image-20200123130941370.png)
 
 
 # median필터
@@ -228,8 +205,4 @@ median = cv2.medianBlur(img, 5)
 plt.imshow(np.hstack([img, gauss, median]))
 ```
 
-
-
-
-
-
+![image-20200123130952345](images/image-20200123130952345.png)

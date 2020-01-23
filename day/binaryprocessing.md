@@ -23,14 +23,14 @@ image = cv2.imread('Lena.png', 0)
 imshow("image", image)
 ```
 
-
+![image-20200123135809665](images/image-20200123135809665.png)
 
 ```python
 thr, mask = cv2.threshold(image, 180, 255, cv2.THRESH_BINARY)
 imshow("binary", mask)
 ```
 
-
+![image-20200123135822044](images/image-20200123135822044.png)
 
 ```python
 print('Threshold used:', thr)
@@ -39,9 +39,7 @@ plt.imshow(image, cmap='gray')
 plt.imshow(mask, cmap='gray')
 ```
 
-    Threshold used: 180.0
-
-
+![image-20200123135842156](images/image-20200123135842156.png)
 
 ```python
 image = cv2.imread('circle.png', 0)
@@ -51,7 +49,7 @@ imshow("", img_blur)
 imshow("", binary)
 ```
 
-
+![image-20200123135902146](images/image-20200123135902146.png)
 
 ```python
 image = cv2.imread('boxnoise.png', 0)
@@ -60,7 +58,7 @@ _, binary = cv2.threshold(img_blur, 128, 255, cv2.THRESH_BINARY)
 imshow("", np.hstack([image, img_blur, binary]))
 ```
 
-
+![image-20200123135913714](images/image-20200123135913714.png)
 
 ```python
 _, binary = cv2.(img_blur, 0, 200, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -69,9 +67,9 @@ imshow("", np.hstack([image, img_blur, binary]))
 plt.hist(image.ravel(), 256, [0, 256], color = 'r')
 ```
 
+![image-20200123140002568](images/image-20200123140002568.png)
 
-
-
+![image-20200123140020477](images/image-20200123140020477.png)
 
 ```python
 image = cv2.imread('ocr-text.png', 0)
@@ -81,9 +79,9 @@ imshow("", binary)
 plt.hist(image.ravel(), 256, [0, 256], color = 'r')
 ```
 
-    (288, 432)
+![image-20200123140129222](images/image-20200123140129222.png)
 
-
+![image-20200123140141116](images/image-20200123140141116.png)
 
 ```python
 image = cv2.imread('text.jpg', 0)
@@ -92,7 +90,7 @@ _, binary = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY)
 imshow("", binary)
 ```
 
-
+![image-20200123140151573](images/image-20200123140151573.png)
 
 ```python
 image = cv2.imread('text.jpg', 0)
@@ -103,9 +101,7 @@ binary = cv2.adaptiveThreshold(image, 255,
 imshow("", binary)
 ```
 
-
-
-
+![image-20200123140159500](images/image-20200123140159500.png)
 
 
 ```python
@@ -118,7 +114,7 @@ imshow("binary", mask)
 imshow("adaptive", adapt_mask)
 ```
 
-
+![image-20200123140211047](images/image-20200123140211047.png)
 
 ```python
 image = cv2.imread('mart.jpg', 0)
@@ -131,7 +127,7 @@ imshow("", binary)
 cv2.imwrite("output.jpg", binary)
 ```
 
-
+![image-20200123140222636](images/image-20200123140222636.png)
 
 
 
@@ -150,7 +146,7 @@ cv2.drawContours(image, contours, -1, (0, 0, 255), 2)
 imshow("", image)
 ```
 
-
+![image-20200123140231646](images/image-20200123140231646.png)
 
 ```python
 image = cv2.imread('shape3.png')
@@ -172,7 +168,7 @@ for con in contours:
 imshow("", img)
 ```
 
-
+![image-20200123140242234](images/image-20200123140242234.png)
 
 ```python
 img = cv2.imread('shape3.png')
@@ -195,7 +191,7 @@ for con in contours :
 imshow("", img)
 ```
 
-
+![image-20200123140252613](images/image-20200123140252613.png)
 
 
 ```python
@@ -220,11 +216,9 @@ for con in contours:
     cv2.drawContours(img, [approx], -1, (0, 0, 255), 2)
     cv2.circle(img, (p), 5, (255,0,0), -1)
 imshow("", img)
-
-
 ```
 
-
+![image-20200123140301774](images/image-20200123140301774.png)
 
 ```python
 img = cv2.imread("shape3.png")
@@ -243,7 +237,7 @@ draw.text((520, 255), "오각형", font=font, fill=(255, 0, 0))
 imgPIL.save("out1.jpg")
 ```
 
-
+![image-20200123140313138](images/image-20200123140313138.png)
 
 
 ```python
@@ -287,20 +281,9 @@ for con in contours:
 
         
 imshow("", img)
-
 ```
 
-
-
-
-
-    shape = 6
-    shape = 240 length = 513.7056245803833   approx=3
-    shape = 300 length = 515.9310202598572   approx=5
-    shape = 226 length = 531.8721435070038   approx=8
-    shape = 4 length = 672.0   approx=4
-    shape = 298 length = 616.7178171873093   approx=3
-    shape = 56 length = 493.0336227416992   approx=4
+![image-20200123140323829](images/image-20200123140323829.png)
 
 
 
@@ -330,7 +313,7 @@ for con in contours :
 imshow("", img)
 ```
 
-
+![image-20200123140354939](images/image-20200123140354939.png)
 
 
 
@@ -345,7 +328,7 @@ imshow("", mask)
 cv2.imwrite("output2.png", mask)
 ```
 
-
+![image-20200123140404900](images/image-20200123140404900.png)
 
 
 ```python
@@ -367,7 +350,9 @@ closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2
 imshow("", closed)
 ```
 
+![image-20200123140442367](images/image-20200123140442367.png)
 
+![image-20200123140453863](images/image-20200123140453863.png)
 
 ```python
 frame = cv2.imread('coin.png')
@@ -380,7 +365,7 @@ thresh = cv2.adaptiveThreshold(gray_blur, 255,
 imshow("", thresh)
 ```
 
-
+![image-20200123140504405](images/image-20200123140504405.png)
 
 ```python
 kernel = np.ones((3, 3),np.uint8)
@@ -388,9 +373,7 @@ closing = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=5)
 imshow("", closing)
 ```
 
-
-
-
+![image-20200123140512093](images/image-20200123140512093.png)
 
 
 ```python
@@ -411,7 +394,7 @@ imshow("out", cont_img)
 imshow("out", roi)
 ```
 
-
+![image-20200123140536638](images/image-20200123140536638.png)
 
 ```python
 frame = cv2.imread('coin.png')
@@ -444,7 +427,9 @@ imshow("out", cont_img)
 imshow("out", roi)
 ```
 
+![image-20200123140559260](images/image-20200123140559260.png)
 
+![image-20200123140612639](images/image-20200123140612639.png)
 
 
 # 내가 해본 실습

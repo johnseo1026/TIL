@@ -27,7 +27,7 @@ imshow("", binary)
 cv2.imwrite("out.png", binary)
 ```
 
-
+![image-20200123160638620](images/image-20200123160638620.png)
 
 
 ```python
@@ -57,7 +57,7 @@ imshow("", binary)
 cv2.imwrite("out2.png", binary)
 ```
 
-
+![image-20200123160656373](images/image-20200123160656373.png)
 
 
 ```python
@@ -66,6 +66,8 @@ img = cv2.imread("mart5.jpg")
 imshow("", img)
 print(str)
 ```
+
+![image-20200123160708891](images/image-20200123160708891.png)
 
 
     여
@@ -113,9 +115,9 @@ print("I found {0} books in that image".format(total))
 imshow("Output", image)
 ```
 
+![image-20200123160729737](images/image-20200123160729737.png)
 
-
-
+![image-20200123160742015](images/image-20200123160742015.png)
 
 
 
@@ -233,7 +235,7 @@ imshow("", img)
     [(0, 2808), (255, 328)]
     [(0, 3038), (255, 326)]
 
-
+![image-20200123160755663](images/image-20200123160755663.png)
 
 
 
@@ -345,7 +347,7 @@ imshow("", img)
     [(255, 2009), (0, 907)]
     [(255, 2706), (0, 1138)]
 
-
+![image-20200123160807526](images/image-20200123160807526.png)
 
 
 # flip (반전)
@@ -355,12 +357,9 @@ imshow("", img)
 img = cv2.imread("lena.jpg")
 img2 = cv2.flip(img, 0)# 1은 좌우반전, 0은 상하반전
 imshow("", img2)
-
 ```
 
-
-
-
+![image-20200123160816389](images/image-20200123160816389.png)
 
 # resize
 
@@ -372,9 +371,7 @@ zoom1 = cv2.resize(img, (200, 100), interpolation = cv2.INTER_CUBIC)
 imshow("", zoom1)
 ```
 
-
-
-
+![image-20200123160830824](images/image-20200123160830824.png)
 
 
 ```python
@@ -387,7 +384,7 @@ imshow("", res)
 
     (512, 512, 3)
 
-
+![image-20200123160858478](images/image-20200123160858478.png)
 
 
 # cropping
@@ -401,7 +398,7 @@ imshow("cropping", cropping)
 
     (200, 290, 3)
 
-
+![image-20200123160907072](images/image-20200123160907072.png)
 
 
 # 이동
@@ -419,7 +416,7 @@ imshow("", dst)
 
     [128 138 225]
 
-
+![image-20200123160915557](images/image-20200123160915557.png)
 
 
 # 내가해본 실습
@@ -441,6 +438,16 @@ for _ in range(10):
         dst = cv2.warpAffine(img, M, (width, height), borderValue = (255, 255, 255))
         imshow("", dst)
 ```
+
+![image-20200123160927477](images/image-20200123160927477.png)
+
+![image-20200123160941471](images/image-20200123160941471.png)
+
+![image-20200123160951615](images/image-20200123160951615.png)
+
+![image-20200123161003488](images/image-20200123161003488.png)
+
+![image-20200123161014151](images/image-20200123161014151.png)
 
 
 
@@ -486,7 +493,7 @@ imshow("", rotated_image)
      [  -0.70710678    0.70710678  256.        ]]
     (512, 512, 3)
 
-
+![image-20200123161024654](images/image-20200123161024654.png)
 
 
 # 변형
@@ -535,7 +542,7 @@ imshow("", img_result)
      [ 4.53502840e-01  1.85206754e+00 -3.43764667e+02]
      [-1.29571760e-04  4.23781663e-04  1.00000000e+00]]
 
-
+![image-20200123161034716](images/image-20200123161034716.png)
 
 ```python
 import pytesseract
@@ -608,9 +615,9 @@ for con in contours :
 imshow("", img)
 ```
 
+![image-20200123161115729](images/image-20200123161115729.png)
 
-
-
+![image-20200123161126264](images/image-20200123161126264.png)
 
 
 ```python
@@ -646,7 +653,7 @@ imshow("", img)
 
     shape=1029  length=2077.716940164566  approx=4 
 
-
+![image-20200123161137767](images/image-20200123161137767.png)
 
 
 
@@ -689,7 +696,7 @@ imshow("", img_result)
      [ 1.87316734e-01  1.31256474e+00 -2.85185012e+02]
      [-3.30071219e-04  1.87225245e-04  1.00000000e+00]]
 
-
+![image-20200123161152772](images/image-20200123161152772.png)
 
 
 

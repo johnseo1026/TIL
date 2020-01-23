@@ -20,7 +20,7 @@ np.random.seed(15)
 
 dataset 이 너무 적은 경우 overfitting 문제가 발생함
 
-![data augmetation](keras_data_augmentation_jitter.png)
+![data augmetation](images/keras_data_augmentation_jitter.png)
 
 
 keras에서는 dta augmentation을 통해 해결
@@ -32,19 +32,19 @@ keras에서는 dta augmentation을 통해 해결
 - Shearing
 - Horizontal (and in some cases, vertical) flips
 
-![image data augmetation](keras_data_augmentation_random_adjustments.jpg)
+
 
 Type #1: existing dataset을 사용해 학습 dataset를 재구성함
 
-<img src=keras_data_augmentation_dataset_generation.png width=300>
+![keras_data_augmentation_dataset_generation](images/keras_data_augmentation_dataset_generation.png)
 
   Type #2: In-place/on-the-fly data augmentation - keras에서 구현
    batch 수 만큼 ImageDataGenerator로 실시간 생성 후 원본 제외하고 생성된 데이터 셋으로 학습
 
-<img src=keras_data_augmentation_in_place.png width=300>
+![keras_data_augmentation_in_place](images/keras_data_augmentation_in_place.png)
 
 잘못된 방식
-<img src=keras_data_augmentation_incorrect.png  width=300>
+![keras_data_augmentation_incorrect](images/keras_data_augmentation_incorrect.png)
 
 ## keras로 이미지 읽기
 
@@ -644,6 +644,252 @@ print(scores[1])
 ```
 
 ![image-20200123105507168](images/image-20200123105507168.png)
+
+```python
+# augmentation 없이  학습
+batch_size = 16
+
+train_datagen = ImageDataGenerator(rescale=1./255 )
+validation_datagen = ImageDataGenerator(rescale=1./255)
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+# 이미지를 배치 단위로 불러와 줄 generator입니다.
+train_generator = train_datagen.flow_from_directory(
+        'clean-dataset/train',  # this is the target directory
+        target_size=(150, 150),  # 모든 이미지의 크기가 150x150로 조정됩니다.
+        batch_size=batch_size,
+        class_mode='categorical')  # binary_crossentropy 손실 함수를 사용하므로 binary 형태로 라벨을 불러와야 합니다.
+
+validation_generator = validation_datagen.flow_from_directory(
+        'clean-dataset/validation',
+        target_size=(150, 150),
+        batch_size=batch_size,
+        class_mode='categorical')
+
+test_generator = test_datagen.flow_from_directory(
+        'clean-dataset/validation',
+        target_size=(150, 150),
+        batch_size=batch_size,
+        class_mode='categorical')
+
+
+model = Sequential()
+model.add(Conv2D(32, (3, 3), input_shape=(150, 150,3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(32, (3, 3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(64, (3, 3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
+model.add(Dense(64))
+model.add(Activation('relu'))
+model.add(Dropout(0.5))
+model.add(Dense(3))
+model.add(Activation('sigmoid'))
+
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+model.fit_generator(
+        train_generator,
+        steps_per_epoch=600 // batch_size,
+        epochs=50, # 5
+        validation_data=validation_generator,
+        validation_steps=150 // batch_size)
+
+
+scores = model.evaluate_generator( test_generator, steps = 150/16)
+print(scores[1])
+```
+
+![image-20200123131139616](images/image-20200123131139616.png)
+
+![image-20200123131209725](images/image-20200123131209725.png)
+
+![image-20200123131220868](images/image-20200123131220868.png)
+
+
+
+# 4. imagenet에서 검색해서 다운하기
+
+```python
+from bs4 import BeautifulSoup
+import numpy as np
+import requests
+import cv2
+import PIL.Image
+import urllib
+```
+
+```python
+page = requests.get("http://www.image-net.org/api/text/imagenet.synset.geturls?wnid=n04194289") #ship synset  wnetid
+soup = BeautifulSoup(page.content, 'html.parser')
+str_soup=str(soup)
+split_urls=str_soup.split('\r\n')
+print(len(split_urls))
+```
+
+1262
+
+```python
+bikes_page = requests.get("http://www.image-net.org/api/text/imagenet.synset.geturls?wnid=n02834778")#bicycle synset
+bikes_soup = BeautifulSoup(bikes_page.content, 'html.parser')
+bikes_str_soup=str(bikes_soup)
+bikes_split_urls=bikes_str_soup.split('\r\n')
+print(len(bikes_split_urls))
+```
+
+1345
+
+```python
+def url_downalod(urls, path, prefix) :    
+    idx = 0
+    for url in urls :
+        try:
+            resp = urllib.request.urlopen(url)
+            image = np.asarray(bytearray(resp.read()), dtype="uint8")
+            image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+            if ( len(image.shape)) == 3 :
+                print(url)
+                idx += 1
+                save_path = path + '/' + prefix + str(idx)+'.jpg'
+                cv2.imwrite(save_path,image)
+        except :
+            None
+```
+
+```python
+url_downalod(split_urls, 'imagenet/ship', 'ship') # aa 폴더에 ship1 부터 저장
+```
+
+```python
+url_downalod(bikes_split_urls, 'imagenet/bikes', 'bike')
+```
+
+```python
+train_datagen  = ImageDataGenerator()
+test_datagen = ImageDataGenerator()
+    
+train_generator = train_datagen.flow_from_directory(
+        'imagenet/train/',
+        target_size=(32, 32),
+        batch_size=32,
+        class_mode='categorical')
+validation_generator = test_datagen.flow_from_directory(
+        'imagenet/validation/',
+        target_size=(32, 32),
+        batch_size=32,
+        class_mode='categorical')
+```
+
+![image-20200123135313000](images/image-20200123135313000.png)
+
+```python
+model2 =  Sequential()
+model2.add(Conv2D(4, kernel_size=(3, 3), activation='relu', input_shape=(32,32,3))) 
+model2.add(Conv2D(8, (3, 3), activation='relu'))
+model2.add(MaxPooling2D(pool_size=(2, 2)))
+model2.add(Dropout(0.25))
+
+
+model2.add(Flatten())
+model2.add(Dense(16, activation='relu'))
+model2.add(Dropout(0.5))
+model2.add(Dense(2, activation='softmax'))
+
+model2.compile(loss='categorical_crossentropy', optimizer="adam", metrics=['accuracy'])
+model2.fit_generator(
+        train_generator,
+        steps_per_epoch=100, # 2000
+        epochs=2, validation_data=validation_generator   #65
+        )
+```
+
+![image-20200123135338404](images/image-20200123135338404.png)
+
+```python
+img_path = 'imagenet/ship.jpg'
+img = load_img(img_path, target_size=(32, 32))
+x = img_to_array(img)
+print(x.shape)
+x = np.expand_dims(x, axis=0)
+print(x.shape)
+preds = model2.predict(x)
+
+print(preds)
+print('Probability that the image is a Bicycle:', preds[0,0])
+print('Probability that the image is a Ship:', preds[0,1])
+```
+
+![image-20200123135400794](images/image-20200123135400794.png)
+
+
+
+# 5. 네트웍 저장 및 복구
+
+```python
+model2.save('bicycleship.h5')
+```
+
+```python
+from keras.models import load_model
+model2 = load_model('bicycleship.h5')
+
+
+img_path = 'imagenet/ship.jpg'
+img = load_img(img_path, target_size=(32, 32))
+x = img_to_array(img)
+print(x.shape)
+x = np.expand_dims(x, axis=0)
+print(x.shape)
+preds = model2.predict(x)
+
+print(preds)
+print('Probability that the image is a Bicycle:', preds[0,0])
+print('Probability that the image is a Ship:', preds[0,1])
+```
+
+![image-20200123135446178](images/image-20200123135446178.png)
+
+```python
+model_json = model2.to_json()
+with open("bicycleship.json", "w") as json_file : 
+    json_file.write(model_json)   
+model2.save_weights("bicycleship_w.h5")
+```
+
+```python
+from keras.models import model_from_json 
+
+json_file = open("bicycleship.json", "r") 
+loaded_model_json = json_file.read() 
+json_file.close() 
+model3 = model_from_json(loaded_model_json)
+model3.load_weights("bicycleship_w.h5")
+
+img_path = 'imagenet/ship.jpg'
+img = load_img(img_path, target_size=(32, 32))
+x = img_to_array(img)
+print(x.shape)
+x = np.expand_dims(x, axis=0)
+print(x.shape)
+preds = model3.predict(x)
+
+print(preds)
+print('Probability that the image is a Bicycle:', preds[0,0])
+print('Probability that the image is a Ship:', preds[0,1])
+```
+
+![image-20200123135510570](images/image-20200123135510570.png)
+
+
 
 
 
