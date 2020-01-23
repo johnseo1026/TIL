@@ -137,7 +137,7 @@ cv2.imwrite("output2.png", filtered2)
     290
     0
     255
-
+    
     True
 
 ![image-20200123114706620](images/image-20200123114706620.png)
