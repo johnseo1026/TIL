@@ -22,6 +22,8 @@ print(data.images.shape)
 print(y_data.shape)
 ```
 
+![image-20200123102908985](images/image-20200123102908985.png)
+
 ```python
 X_data = X_data.reshape((X_data.shape[0], X_data.shape[1], X_data.shape[2], 1))  # 3차원 ->4차원으로 ,1을 써서 변환 계산의 효율성을 위해서
 y_data = to_categorical(y_data)
@@ -33,6 +35,8 @@ print(X_test.shape)
 print(y_train.shape)
 print(y_test.shape)
 ```
+
+![image-20200123102925978](images/image-20200123102925978.png)
 
 ```python
 model = Sequential()
@@ -65,9 +69,7 @@ print('Test accuracy: ', results[1])
 #단순 cnn조차 금방 96% 나온다.
 ```
 
-
-
-
+![image-20200123102944300](images/image-20200123102944300.png)
 
 ```python
 def deep_cnn():
@@ -110,10 +112,14 @@ model = deep_cnn()
 model.summary()
 ```
 
+![image-20200123103016811](images/image-20200123103016811.png)
+
 ```python
 %%time
 history = model.fit(X_train, y_train, batch_size = 50, validation_split = 0.2, epochs = 100, verbose = 0)
 ```
+
+![image-20200123103038803](images/image-20200123103038803.png)
 
 ```python
 plt.plot(history.history['accuracy'])
@@ -122,10 +128,34 @@ plt.legend(['training', 'validation'], loc = 'upper left')
 plt.show()
 ```
 
+![image-20200123103050371](images/image-20200123103050371.png)
+
 ```
 results = model.evaluate(X_test, y_test)
 print('Test accuracy: ', results[1])    # 오히려 결과가 떨어짐
 ```
+
+![image-20200123103117218](images/image-20200123103117218.png)
+
+```python
+model = Sequential()
+    
+model.add(Conv2D(input_shape = (X_train.shape[1], X_train.shape[2], X_train.shape[3]), filters = 10, kernel_size = (3,3), strides = (1,1), padding = 'same'))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size = (2,2)))
+    
+    
+model.add(Flatten())    
+model.add(Dense(50, activation = 'relu'))    
+model.add(Dense(10, activation = 'softmax'))
+    
+adam = optimizers.Adam(lr = 0.001)
+model.compile(loss = 'categorical_crossentropy', optimizer = adam, metrics = ['accuracy'])
+    
+model.summary()  
+```
+
+![image-20200123103139525](images/image-20200123103139525.png)
 
 
 
@@ -180,13 +210,18 @@ model = deep_cnn_advanced()
 model.summary()
 ```
 
+![image-20200123103213757](images/image-20200123103213757.png)
+
 ```python
 %%time
 history = model.fit(X_train, y_train, batch_size = 50, validation_split = 0.2, epochs = 100, verbose = 0)
 ```
+
+![image-20200123103228108](images/image-20200123103228108.png)
 
 ```python
 results = model.evaluate(X_test, y_test)
 print('Test accuracy: ', results[1])             
 ```
 
+![image-20200123103242139](images/image-20200123103242139.png)

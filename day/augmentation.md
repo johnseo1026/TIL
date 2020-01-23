@@ -432,3 +432,218 @@ for k in range(len(idx)) :
 
 ![image-20200122175010821](images/image-20200122175010821.png)
 
+
+
+# 3. dog cat  augmentatation
+
+- https://keraskorea.github.io/posts/2018-10-24-little_data_powerful_model/
+- https://www.kaggle.com/c/dogs-vs-cats/data
+- 학습 데이터로 1,000장의 고양이 사진과 1,000장의 강아지 사진을 사용 (kaggle  25,000자)
+- 검증 데이터로는 각각 400장 사용
+
+```python
+img = load_img('dog.jpg') 
+x = img_to_array(img)
+print(x.shape)   # w,h,c 인직 확인
+```
+
+![image-20200123094513702](images/image-20200123094513702.png)
+
+```python
+batch_size = 16
+
+train_datagen = ImageDataGenerator(
+        rescale=1./255,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True)
+
+# 검증 및 테스트 이미지는 augmentation을 적용하지 않음(이미지 원본을 사용)
+validation_datagen = ImageDataGenerator(rescale=1./255)
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+# 이미지를 배치 단위로 불러와 줄 generator입니다.
+train_generator = train_datagen.flow_from_directory(
+        'smallcatdog/train', 
+        target_size=(150, 150), 
+        batch_size=batch_size,
+        class_mode='binary') 
+
+validation_generator = validation_datagen.flow_from_directory(
+        'smallcatdog/validation',
+        target_size=(150, 150),
+        batch_size=batch_size,
+        class_mode='binary')
+
+test_generator = test_datagen.flow_from_directory(
+        'smallcatdog/validation',
+        target_size=(150, 150),
+        batch_size=batch_size,
+        class_mode='binary')
+```
+
+![image-20200123094535868](images/image-20200123094535868.png)
+
+```python
+model = Sequential()
+model.add(Conv2D(32, (3, 3), input_shape=(150, 150,3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(32, (3, 3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(64, (3, 3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
+model.add(Dense(64))
+model.add(Activation('relu'))
+model.add(Dropout(0.5))
+model.add(Dense(1))
+model.add(Activation('sigmoid'))
+
+model.compile(loss='binary_crossentropy',
+              optimizer='rmsprop',
+              metrics=['accuracy'])
+```
+
+```python
+# steps_per_epoch는 한 세대마다 몇 번 생성기로부터 데이터를 얻을지를 나타내는 값
+# 한 세대마다 사용되는 학습데이터의 수는 steps_per_epoch * batch_size
+        
+model.fit_generator(
+        train_generator,
+        steps_per_epoch=2000 // batch_size,    # 2000/16     한번에 125개씩 생성
+        epochs=5,  #50
+        validation_data=validation_generator,
+        validation_steps=800 // batch_size)     # 800/16   한번에 50개씩 생성
+model.save("smallcardog.h5")
+```
+
+![image-20200123101620768](images/image-20200123101620768.png)
+
+![image-20200123101716306](images/image-20200123101716306.png)
+
+![image-20200123101731128](images/image-20200123101731128.png)
+
+```python
+# 모델 평가하기
+print("-- Evaluate --")
+scores = model.evaluate_generator( test_generator, steps = 800/16)
+print(scores[1])
+```
+
+![image-20200123101739265](images/image-20200123101739265.png)
+
+```python
+# augmentation 없이  학습
+batch_size = 16
+
+train_datagen = ImageDataGenerator(rescale=1./255 )
+validation_datagen = ImageDataGenerator(rescale=1./255)
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+# 이미지를 배치 단위로 불러와 줄 generator입니다.
+train_generator = train_datagen.flow_from_directory(
+        'smallcatdog/train',  # this is the target directory
+        target_size=(150, 150),  # 모든 이미지의 크기가 150x150로 조정됩니다.
+        batch_size=batch_size,
+        class_mode='binary')  # binary_crossentropy 손실 함수를 사용하므로 binary 형태로 라벨을 불러와야 합니다.
+
+validation_generator = validation_datagen.flow_from_directory(
+        'smallcatdog/validation',
+        target_size=(150, 150),
+        batch_size=batch_size,
+        class_mode='binary')
+
+test_generator = test_datagen.flow_from_directory(
+        'smallcatdog/validation',
+        target_size=(150, 150),
+        batch_size=batch_size,
+        class_mode='binary')
+
+
+model = Sequential()
+model.add(Conv2D(32, (3, 3), input_shape=(150, 150,3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(32, (3, 3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(64, (3, 3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
+model.add(Dense(64))
+model.add(Activation('relu'))
+model.add(Dropout(0.5))
+model.add(Dense(1))
+model.add(Activation('sigmoid'))
+
+model.compile(loss='binary_crossentropy',
+              optimizer='rmsprop',
+              metrics=['accuracy'])
+
+model.fit_generator(
+        train_generator,
+        steps_per_epoch=2000 // batch_size,
+        epochs=50, # 5
+        validation_data=validation_generator,
+        validation_steps=800 // batch_size)
+
+model.save("smallcatdog_wa.h5")
+scores = model.evaluate_generator( test_generator, steps = 800/16)
+print(scores[1])
+```
+
+![image-20200123103320678](images/image-20200123103320678.png)
+
+![image-20200123103340872](images/image-20200123103340872.png)
+
+![image-20200123103402159](images/image-20200123103402159.png)
+
+```python
+# 모델 평가하기
+print("-- Evaluate --")
+scores = model.evaluate_generator( test_generator, steps = 800/16)
+print(scores[1])
+```
+
+
+
+![image-20200123103417203](images/image-20200123103417203.png)
+
+```python
+# kernel restart후 불러오기
+from keras.models import load_model
+
+model2 = load_model('smallcatdog.h5')
+
+model2.summary()
+```
+
+![image-20200123105438980](images/image-20200123105438980.png)
+
+```python
+batch_size = 16
+
+test_datagen = ImageDataGenerator(rescale=1./255)
+test_generator = test_datagen.flow_from_directory(
+        'smallcatdog/validation',
+        target_size=(150, 150),
+        batch_size=batch_size,
+        class_mode='binary')
+scores = model2.evaluate_generator( test_generator, steps = 800/16)
+print(scores[1])
+```
+
+![image-20200123105507168](images/image-20200123105507168.png)
+
+
+

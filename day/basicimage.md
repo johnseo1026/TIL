@@ -21,13 +21,15 @@ a = np.asarray([
 plt.imshow(a, cmap='gray')
 ```
 
+![image-20200123105824663](images/image-20200123105824663.png)
+
 ```python
 b = a + 5
 plt.imshow(b, cmap='gray')
 print(b)
 ```
 
-
+![image-20200123105834403](images/image-20200123105834403.png)
 
 ```python
 r = np.asarray([
@@ -59,6 +61,8 @@ plt.imshow(r, cmap="gray")
 plt.show()
 ```
 
+![image-20200123105847589](images/image-20200123105847589.png)
+
 ```python
 z = np.zeros((4,4), dtype = 'uint8')
 
@@ -74,20 +78,23 @@ plt.imshow(bb)
 plt.show()
 ```
 
+![image-20200123105909900](images/image-20200123105909900.png)
+
 ```python
 all = np.hstack([np.dstack([r,g,b]),rr,gg,bb])
 plt.imshow(all)
 ```
 
-
-
-
+![image-20200123105919205](images/image-20200123105919205.png)
 
 ```python
 img = cv2.imread("yellow.jpg") # 사진 다운받아서 해라
 print(type(img))
 print(img.shape)
+plt.imshow(img)
 ```
+
+![image-20200123105954162](images/image-20200123105954162.png)
 
 ```python
 b = img[:,:,0]
@@ -98,6 +105,8 @@ rgb = np.dstack([r,g,b])
 plt.imshow(rgb)
 ```
 
+![image-20200123110005691](images/image-20200123110005691.png)
+
 ```python
 b = img[:,:,0]
 print(b.shape)
@@ -107,11 +116,15 @@ rgb = np.dstack([r,g,b])
 plt.imshow(rgb)
 ```
 
+![image-20200123110028817](images/image-20200123110028817.png)
+
 ```python
 rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) 
 plt.imshow(rgb)
 cv2.imwrite("result.jpg", rgb)
 ```
+
+![image-20200123110053873](images/image-20200123110053873.png)
 
 
 
@@ -136,7 +149,9 @@ rgb = np.dstack([r,g,b])
 plt.imshow(rgb)
 ```
 
-배경과 얼굴 분류
+![image-20200123110138996](images/image-20200123110138996.png)
+
+## 배경과 얼굴 분류
 
 ```python
 for r in range(h.shape[0]):
@@ -154,6 +169,8 @@ plt.imshow(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
 # Lower = np.array([0.48,80], dtype="uint8")
 # upper = np.array([20,255,255], dtype="uint8")
 ```
+
+![image-20200123110257260](images/image-20200123110257260.png)
 
 ```python
 img = cv2.imread("sana.jpg")
@@ -182,10 +199,14 @@ plt.imshow(cv2.cvtColor(result1, cv2.COLOR_BGR2RGB))
 # upper = np.array([20,255,255], dtype="uint8")
 ```
 
+![image-20200123110310594](images/image-20200123110310594.png)
+
 ```python
 all1 = np.hstack([rgb, cv2.cvtColor(result, cv2.COLOR_BGR2RGB), cv2.cvtColor(result1, cv2.COLOR_BGR2RGB)])
 plt.imshow(all1)
 ```
+
+![image-20200123110325264](images/image-20200123110325264.png)
 
 ```python
 img = cv2.imread("sana.jpg")
@@ -221,6 +242,8 @@ all = np.hstack([img, mask, result])
 plt.imshow(cv2.cvtColor(all, cv2.COLOR_BGR2RGB))
 ```
 
+![image-20200123110344305](images/image-20200123110344305.png)
+
 ```python
 img = cv2.imread("sana.jpg")
 print(img.shape)
@@ -247,6 +270,8 @@ all = np.hstack([img, mask, result])
 plt.imshow(cv2.cvtColor(all, cv2.COLOR_BGR2RGB))
 ```
 
+![image-20200123110403137](images/image-20200123110403137.png)
+
 ```python
 train = cv2.imread("patch.png")
 print(train.shape)
@@ -261,12 +286,7 @@ plt.hist(g.ravel(), 256, [0, 256], color='g');
 plt.hist(r.ravel(), 256, [0, 256], color='r');
 ```
 
-```python
-h,s,v = cv2.split(cv2.cvtColor(train, cv2.COLOR_BGR2HSV))
-plt.hist(h.ravel(), 256, [0, 256], color='b');
-plt.hist(s.ravel(), 256, [0, 256], color='g');
-plt.hist(v.ravel(), 256, [0, 256], color='r');
-```
+![image-20200123110416474](images/image-20200123110416474.png)
 
 ```python
 h,s,v = cv2.split(cv2.cvtColor(train, cv2.COLOR_BGR2HSV))
@@ -274,6 +294,17 @@ plt.hist(h.ravel(), 256, [0, 256], color='b');
 plt.hist(s.ravel(), 256, [0, 256], color='g');
 plt.hist(v.ravel(), 256, [0, 256], color='r');
 ```
+
+![image-20200123110428466](images/image-20200123110428466.png)
+
+```python
+h,s,v = cv2.split(cv2.cvtColor(train, cv2.COLOR_BGR2HSV))
+plt.hist(h.ravel(), 256, [0, 256], color='b');
+plt.hist(s.ravel(), 256, [0, 256], color='g');
+plt.hist(v.ravel(), 256, [0, 256], color='r');
+```
+
+![image-20200123110528772](images/image-20200123110528772.png)
 
 ## 크로마키 제외하기
 
@@ -285,6 +316,8 @@ plt.hist(b.ravel(), 256, [0, 256], color='b');
 plt.hist(g.ravel(), 256, [0, 256], color='g');
 plt.hist(r.ravel(), 256, [0, 256], color='r');
 ```
+
+![image-20200123110800080](images/image-20200123110800080.png)
 
 ```python
 train = cv2.imread("patch3.png")
@@ -308,3 +341,4 @@ for r in range(test.shape[0]):
 plt.imshow(cv2.cvtColor(test, cv2.COLOR_BGR2RGB))
 ```
 
+![image-20200123110816296](images/image-20200123110816296.png)

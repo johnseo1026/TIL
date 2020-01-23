@@ -37,7 +37,7 @@ from PIL import ImageFont, ImageDraw, Image
 sp.norm(0,1).pdf(0.2)  # 정규분포
 ```
 
-
+![image-20200123110917439](images/image-20200123110917439.png)
 
 ```python
 train = cv2.imread("patch3.png")
@@ -62,7 +62,7 @@ p =sp.norm(0,1).pdf((9-7)/4)
 print(p)
 ```
 
-
+![image-20200123110907293](images/image-20200123110907293.png)
 
 ```python
 test = cv2.imread("z.jpg")
@@ -79,7 +79,7 @@ for r in range(test.shape[0]) :
 plt.imshow(cv2.cvtColor(test, cv2.COLOR_BGR2RGB) ) 
 ```
 
-
+![image-20200123110931736](images/image-20200123110931736.png)
 
 ```python
 img = cv2.imread("lena.png", cv2.IMREAD_GRAYSCALE)
@@ -92,7 +92,7 @@ img2 = img + 20
 plt.imshow(np.hstack([img, img2]), cmap="gray")
 ```
 
-
+![image-20200123110942349](images/image-20200123110942349.png)
 
 ```python
 a = np.array([250, 254], dtype="uint8")
@@ -114,6 +114,8 @@ print(type(f[0]))
 print(type(f[1]))
 ```
 
+![image-20200123111000287](images/image-20200123111000287.png)
+
 ```python
 img2 = img.astype(np.int)
 img2 += 50
@@ -122,14 +124,17 @@ img2 = np.clip(img2, 0, 255).astype(np.uint8)
 plt.imshow(img2, cmap="gray")
 ```
 
+![image-20200123111017952](images/image-20200123111017952.png)
+
 ```python
 img2 = img.astype(np.float32)
 img2 += 0.2
 img2 = np.clip(img2, 0, 255).astype(np.uint8)
 
 plt.imshow(img2, cmap="gray")
-
 ```
+
+![image-20200123111028415](images/image-20200123111028415.png)
 
 ```python
 lut = [x+5 for x in range(10)]
@@ -137,6 +142,10 @@ print(lut)
 lut2 = [x+5 if x+5 <= 9 else 9 for x in range(10)]
 print(lut2)
 ```
+
+![image-20200123111043222](images/image-20200123111043222.png)
+
+
 
 ## 화소값 덧셈연산
 
@@ -146,7 +155,7 @@ def addlut(op):
 print(addlut(100))
 ```
 
-
+![image-20200123111057344](images/image-20200123111057344.png)
 
 ## 화소값 곱셈연산
 
@@ -156,7 +165,7 @@ def mullut(op):
 print(mullut(1.5))
 ```
 
-
+![image-20200123111108318](images/image-20200123111108318.png)
 
 ## 감마보정
 
@@ -180,7 +189,7 @@ all = np.hstack([cv2.LUT(img, mullut(0.7)),
 plt.imshow(all, cmap="gray")
 ```
 
-
+![image-20200123111122905](images/image-20200123111122905.png)
 
 ## 이진화
 
@@ -193,7 +202,7 @@ print(src2)
 plt.imshow(src2, cmap="gray")
 ```
 
-
+![image-20200123111138698](images/image-20200123111138698.png)
 
 ## 포스터라이징
 
@@ -212,7 +221,7 @@ print(src2)
 plt.imshow(src2, cmap="gray")
 ```
 
-
+![image-20200123111152883](images/image-20200123111152883.png)
 
 ## 명암대비
 
@@ -224,7 +233,7 @@ print(src2)
 plt.imshow(src2, cmap="gray")
 ```
 
-
+![image-20200123111203956](images/image-20200123111203956.png)
 
 ## 감마보정
 
@@ -238,7 +247,7 @@ print(src2)
 plt.imshow(src2, cmap="gray")
 ```
 
-
+![image-20200123111213518](images/image-20200123111213518.png)
 
 ```python
 img = cv2.imread("gamma.jpg")
@@ -277,7 +286,7 @@ im4 = Image.open('g4.jpg')
 im1.save("out.gif", save_all=True, append_images=[im2, im3, im4], duration=1000, loop=0)
 ```
 
-
+![out](images/out.gif)
 
 ```python
 from PIL import Image
@@ -288,7 +297,7 @@ im4 = Image.open('g4.jpg')
 im1.save("out2.gif", save_all=True, append_images=[im2, im3, im4], duration=500, loop=2)
 ```
 
-
+![out2](images/out2.gif)
 
 ```python
 img = cv2.imread("gamma.jpg")
@@ -302,7 +311,7 @@ draw.text((10, 10), "댕댕이들", font=font, fill=(255, 0, 0))
 imgPIL.save("out4.jpg")
 ```
 
-
+![out4](images/out4.jpg)
 
 ## 화소 영역 처리
 
@@ -314,11 +323,15 @@ kernel = np.ones((k,k), np.float32) / (k*k)
 print(kernel)
 ```
 
+![image-20200123111616125](images/image-20200123111616125.png)
+
 ```python
 filtered = cv2.filter2D(img, -1, kernel)
 
 plt.imshow(cv2.cvtColor(filtered, cv2.COLOR_BGR2RGB))
 ```
+
+![image-20200123111628095](images/image-20200123111628095.png)
 
 ```python
 img = cv2.imread("gamma.jpg", cv2.IMREAD_GRAYSCALE)
@@ -330,5 +343,5 @@ filtered = cv2.filter2D(img, -1, kernel)
 plt.imshow(cv2.cvtColor(filtered, cv2.COLOR_BGR2RGB))
 ```
 
-
+![image-20200123111637826](images/image-20200123111637826.png)
 

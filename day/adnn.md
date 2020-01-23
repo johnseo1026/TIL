@@ -38,17 +38,23 @@ print(X_train.shape)
 print(y_train.shape)
 ```
 
+![image-20200123104138894](images/image-20200123104138894.png)
+
 ```python
 plt.imshow(X_train[0])    # show first number in the dataset
 plt.show()
 print('Label: ', y_train[0])
 ```
 
+![image-20200123104258980](images/image-20200123104258980.png)
+
 ```python
 plt.imshow(X_test[0])    # show first number in the dataset
 plt.show()
 print('Label: ', y_test[0])
 ```
+
+![image-20200123104244764](images/image-20200123104244764.png)
 
 ```python
 # reshaping X data: (n, 28, 28) => (n, 784)
@@ -60,12 +66,16 @@ X_test = X_test.reshape((X_test.shape[0], -1))
 print(X_train.shape)
 ```
 
+![image-20200123104311845](images/image-20200123104311845.png)
+
 ```python
 # use only 33% of training data to expedite the training process
 X_train, _ , y_train, _ = train_test_split(X_train, y_train, test_size = 0.67, random_state = 7)
 print(X_train.shape)
 print(y_train)
 ```
+
+![image-20200123104324985](images/image-20200123104324985.png)
 
 ```python
 # converting y data into categorical (one-hot encoding)
@@ -77,9 +87,13 @@ y_test = to_categorical(y_test)
 print(y_test.shape)
 ```
 
+![image-20200123104338002](images/image-20200123104338002.png)
+
 ```python
 print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 ```
+
+![image-20200123104356195](images/image-20200123104356195.png)
 
 # Basic MLP model
 
@@ -113,6 +127,8 @@ history = model.fit(X_train, y_train, batch_size = 256, validation_split = 0.3, 
 print(history.history)
 ```
 
+![image-20200123104421944](images/image-20200123104421944.png)
+
 ```python
 plt.plot(history.history['accuracy'])
 plt.plot(history.history['val_accuracy'])
@@ -120,15 +136,19 @@ plt.legend(['training', 'validation'], loc = 'upper left')
 plt.show()
 ```
 
+![image-20200123104435573](images/image-20200123104435573.png)
+
 ```python
 results = model.evaluate(X_test, y_test)
 ```
+
+![image-20200123104448922](images/image-20200123104448922.png)
 
 ```python
 print('Test accuracy: ', results[1])
 ```
 
-
+![image-20200123104501577](images/image-20200123104501577.png)
 
 ## 1. Weight Initialization
 
@@ -173,14 +193,20 @@ plt.legend(['training', 'validation'], loc = 'upper left')
 plt.show()
 ```
 
+![image-20200123104514414](images/image-20200123104514414.png)
+
 ```python
 results = model.evaluate(X_test, y_test)
 print(results)  # 나온 결과값 앞이 loss 뒤가 accuracy
 ```
 
+![image-20200123104526755](images/image-20200123104526755.png)
+
 ```python
 print('Test accuracy: ', results[1])
 ```
+
+![image-20200123104539929](images/image-20200123104539929.png)
 
 
 
@@ -219,13 +245,19 @@ plt.legend(['training', 'validation'], loc = 'upper left')
 plt.show()
 ```
 
+![image-20200123104553653](images/image-20200123104553653.png)
+
 ```python
 results = model.evaluate(X_test, y_test)
 ```
 
+![image-20200123104604010](images/image-20200123104604010.png)
+
 ```python
 print('Test accuracy: ', results[1])
 ```
+
+![image-20200123104615129](images/image-20200123104615129.png)
 
 
 
@@ -264,13 +296,19 @@ plt.legend(['training', 'validation'], loc = 'upper left')
 plt.show()
 ```
 
+![image-20200123104629046](images/image-20200123104629046.png)
+
 ```python
 results = model.evaluate(X_test, y_test)
 ```
 
+![image-20200123104639225](images/image-20200123104639225.png)
+
 ```python
 print('Test accuracy: ', results[1])
 ```
+
+![image-20200123104649873](images/image-20200123104649873.png)
 
 
 
@@ -319,13 +357,19 @@ plt.legend(['training', 'validation'], loc = 'upper left')
 plt.show()
 ```
 
+![image-20200123104704745](images/image-20200123104704745.png)
+
 ```python
 results = model.evaluate(X_test, y_test)
 ```
 
+![image-20200123104716226](images/image-20200123104716226.png)
+
 ```python
 print('Test accuracy: ', results[1])
 ```
+
+![image-20200123104725057](images/image-20200123104725057.png)
 
 
 
@@ -372,13 +416,19 @@ plt.legend(['training', 'validation'], loc = 'upper left')
 plt.show()
 ```
 
+![image-20200123104741426](images/image-20200123104741426.png)
+
 ```python
 results = model.evaluate(X_test, y_test)
 ```
 
+![image-20200123104751177](images/image-20200123104751177.png)
+
 ```python
 print('Test accuracy: ', results[1])
 ```
+
+![image-20200123104759984](images/image-20200123104759984.png)
 
 
 
@@ -427,15 +477,22 @@ ensemble_clf = VotingClassifier(estimators = [
 ensemble_clf.fit(X_train, y_train)
 ```
 
+![image-20200123104857895](images/image-20200123104857895.png)
+
 ```python
 y_pred = ensemble_clf.predict(X_test)
 ```
+
+![image-20200123104938593](images/image-20200123104938593.png)
 
 ```python
 print('Test accuracy:', accuracy_score(y_pred, y_test))
 ```
 
+![image-20200123105003265](images/image-20200123105003265.png)
+
 # Advanced MLP - 2
+
 - More training set
 - Weight Initialization scheme
 - Nonlinearity (Activation function)
@@ -455,6 +512,8 @@ print(X_test.shape)
 print(y_train.shape)
 print(y_test.shape)
 ```
+
+![image-20200123105016313](images/image-20200123105016313.png)
 
 ```python
 def mlp_model():
@@ -502,6 +561,8 @@ ensemble_clf = VotingClassifier(estimators = [('model1', model1), ('model2', mod
 ensemble_clf.fit(X_train, y_train)
 ```
 
+![image-20200123105032790](images/image-20200123105032790.png)
+
 ```python
 y_pred = ensemble_clf.predict(X_test)
 ```
@@ -509,3 +570,5 @@ y_pred = ensemble_clf.predict(X_test)
 ```python
 print('Acc: ', accuracy_score(y_pred, y_test))
 ```
+
+![image-20200123105041057](images/image-20200123105041057.png)

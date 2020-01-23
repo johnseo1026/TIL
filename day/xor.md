@@ -57,7 +57,7 @@ model.add(Activation('sigmoid'))
 model.summary()                    # 층이 깊어졌을때 위로갈수록 학습이 덜된다
 ```
 
-
+![image-20200123102544543](images/image-20200123102544543.png)
 
 ```python
 model.compile(loss='binary_crossentropy', optimizer='adam')
@@ -69,12 +69,14 @@ model.fit(X, y, batch_size=4, epochs=6000, verbose=0)
 print(model.predict_proba(X))   # 행렬은 4x1이다. sample 수 x 클래스수
 ```
 
+![image-20200123102609537](images/image-20200123102609537.png)
+
 ```python
 p = model.predict_proba(X)
 print((p>0.5)*1)
 ```
 
-
+![image-20200123102619217](images/image-20200123102619217.png)
 
 ```python
 xx, yy = np.mgrid[0:1:0.02, 0:1:0.02]
@@ -90,7 +92,7 @@ plt.scatter(xx.flatten(), yy.flatten(), color = colors, alpha=0.2)
 plt.savefig('xor.png')
 ```
 
-
+![image-20200123102643626](images/image-20200123102643626.png)
 
 ```python
 from sklearn.datasets import make_moons
@@ -102,7 +104,7 @@ plt.scatter(x_data[:,0], x_data[:,1], color = colors, alpha=1.0)
 print(y_data.shape)
 ```
 
-
+![image-20200123102700442](images/image-20200123102700442.png)
 
 ```python
 model = Sequential([
@@ -131,7 +133,7 @@ colors = ["red"  if i>  0.5  else  "blue"  for i  in h  ]
 plt.scatter(xx.flatten(), yy.flatten(), color = colors, alpha=0.2)  
 ```
 
-
+![image-20200123102718914](images/image-20200123102718914.png)
 
 ```python
 model = Sequential([
@@ -153,6 +155,8 @@ model.fit(x_data, y_data, batch_size=100, epochs=3000, verbose=0,
           callbacks=[printepoch(500)])
 ```
 
+![image-20200123102736330](images/image-20200123102736330.png)
+
 
 ```python
 colors = ["red"  if i == 1  else   "blue"    for i  in y_data  ]
@@ -164,7 +168,7 @@ colors = ["red"  if i>  0.5  else  "blue"  for i  in h  ]
 plt.scatter(xx.flatten(), yy.flatten(), color = colors, alpha=0.2)  
 ```
 
-
+![image-20200123102748274](images/image-20200123102748274.png)
 
 
 # 깊은 네트워크 학습
@@ -195,9 +199,7 @@ model.fit(x_data, y_data, batch_size=100, epochs=3000, verbose=0,
           callbacks=[printepoch(500)])
 ```
 
-
-
-
+![image-20200123102800828](images/image-20200123102800828.png)
 
 
 ```python
