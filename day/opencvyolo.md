@@ -495,25 +495,30 @@ imshow("", img)
 ![png](images/output_11_0-1580284017697.png)
 
 
-#  영상 만들기
+#  영상 만들어서 YOLO
 
 
 ```python
 import cv2
 import time
-img = cv2.imread('book1.jpg')
 
-fourcc = cv2.VideoWriter_fourcc(*'XVID')   #코덱쓰기
-#fourcc = cv2.VideoWriter_fourcc('X','V','I','D')  위에것이랑 같은 표현
-
-video = cv2.VideoWriter("test.avi", fourcc, 1.0, (img.shape[1], img.shape[0]))  
-
-for i in range(100):
-    video.write(img)
-    time.sleep(0.01)
+cap = cv2.VideoCapture('vtest.avi')
+a = int(cap.get(3))    # rlwhs ehd
+b = int(cap.get(4))
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+video = cv2.VideoWriter("vtest_out.mp4", fourcc, 20.0, (a, b))
 
 
-
+for i in range(50) :
+    ret, frame = cap.read()         
+    blob = cv2.dnn.blobFromImage(frame, 1/255,
+            (inpWidth, inpHeight), [0,0,0], True, crop=False)    
+    net.setInput(blob)
+    outs = net.forward(getOutputsNames(net))    
+    postprocess(frame, outs)
+    #imshow("", frame)
+    video.write(frame)    
+    cv2.waitKey(20)
 video.release()
 ```
 
