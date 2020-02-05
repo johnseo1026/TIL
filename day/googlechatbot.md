@@ -289,6 +289,11 @@ def weather():
     info = getWeather(city)
     return jsonify(info)
 
+@app.route('/dialogflow', methods=['POST', 'GET'])
+def dialogflow():
+    res = {'fulfillmentText': 'Heloo~~~'}
+    return jsonify(res)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000, debug=True)   # debug=True를 해야 바로바로 수정이 가능
 ```
