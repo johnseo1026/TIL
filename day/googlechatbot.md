@@ -158,7 +158,7 @@ def get_answer(text, sessionId):
         'lang': 'ko', 'timezone' : 'Asia/Seoul'
     }
     data_header = {
-        'Authorization': 'Bearer 862fdf19603c4e6186b010e7348979a8',
+        'Authorization': 'Bearer f6057dfba2ad49ee9310fd336e01dda2',
         'Content-Type': 'application/json; charset=utf-8'
     }
 
@@ -213,6 +213,33 @@ def printtts(text):
 ```
 
 ```python
+def processDialog(req) :
+    
+    answer = req['queryResult']['fulfillmentText']
+    intentName = req['queryResult']['intent']['displayName'] 
+    
+    if intentName == 'query' :
+        word = req["queryResult"]['parameters']['any'] 
+        text = getQuery(word)[0]                
+        res = {'fulfillmentText': text}  
+        
+    elif  intentName == 'order2' :
+        price = {"짜장면":5000, "짬뽕":10000, "탕수육":20000}
+        params = req['queryResult']['parameters']['food_number']        
+        output = [  food.get("number-integer", 1)*price[food["food"]]  for food in params ] 
+        res = {'fulfillmentText': sum(output)}  
+    elif intentName == 'weather'  :        
+        date = req['queryResult']['parameters']['date']
+        geo_city = req['queryResult']['parameters']['geo-city']                                
+        info = getWeather(geo_city)  
+        res = {'fulfillmentText': f"{geo_city} 날씨 정보 : {info['temp']} /  {info['desc']}"}  
+    else :
+        res = {'fulfillmentText': answer}           
+        
+    return res
+```
+
+```python
 while True :
     txt = input("->")
     dict = get_answer(txt, 'user01')
@@ -260,6 +287,7 @@ import requests
 import urllib
 import json
 from bs4 import BeautifulSoup
+import pickle
 
 def getWeather(city) :    
     url = "https://search.naver.com/search.naver?query="
@@ -268,10 +296,43 @@ def getWeather(city) :
     bs = BeautifulSoup(urllib.request.urlopen(url).read(), "html.parser")
     temp = bs.select('span.todaytemp')    
     desc = bs.select('p.cast_txt')    
-    return  {"temp":temp[0].text, "desc":desc[0].text}    
+    return  {"temp":temp[0].text, "desc":desc[0].text}     
 
+def getQuery(word) :
+    url = "https://search.naver.com/search.naver?where=kdic&query="
+    url = url + urllib.parse.quote_plus(word)
+    print(url)
+    bs = BeautifulSoup(urllib.request.urlopen(url).read(), "html.parser")
+    output = bs.select('p.txt_box')
+    
+    return [node.text for node in output]
 
+def processDialog(req) :
+    
+    answer = req['queryResult']['fulfillmentText']
+    intentName = req['queryResult']['intent']['displayName'] 
+    
+    if intentName == 'query' :
+        word = req["queryResult"]['parameters']['any'] 
+        text = getQuery(word)[0]                
+        res = {'fulfillmentText': text}  
+        
+    elif  intentName == 'order2' :
+        price = {"짜장면":5000, "짬뽕":10000, "탕수육":20000}
+        params = req['queryResult']['parameters']['food_number']        
+        output = [  food.get("number-integer", 1)*price[food["food"]]  for food in params ] 
+        res = {'fulfillmentText': sum(output)}  
+    elif intentName == 'weather'  :        
+        date = req['queryResult']['parameters']['date']
+        geo_city = req['queryResult']['parameters']['geo-city']                                
+        info = getWeather(geo_city)  
+        res = {'fulfillmentText': f"{geo_city} 날씨 정보 : {info['temp']} /  {info['desc']}"}  
+    else :
+        res = {'fulfillmentText': answer}           
+        
+    return res
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False    # 웹용 한글깨짐 방지
 
 @app.route('/')
 def home():   # home 말고 마음대로 해도 상관없음
@@ -281,7 +342,7 @@ def home():   # home 말고 마음대로 해도 상관없음
 
 @app.route('/abc')
 def home2():   # 같게 만들필요는 없음
-    return "test!!!"
+    return "호이짜!!!"
 
 @app.route('/weather')
 def weather():
@@ -291,8 +352,19 @@ def weather():
 
 @app.route('/dialogflow', methods=['POST', 'GET'])
 def dialogflow():
-    res = {'fulfillmentText': 'Heloo~~~'}
-    return jsonify(res)
+    
+    if request.method == 'GET' :
+        file = request.args.get("file")        
+        with open(file, encoding='UTF8') as json_file:
+            req = json.load(json_file)    
+            print(json.dumps(req, indent=4, ensure_ascii=False))   # ensure_ascii=False 콘솔용 한글깨짐 방지          
+    else :
+        req = request.get_json(force=True)    
+        print(json.dumps(req, indent=4, ensure_ascii=False))    
+    
+    
+    return  jsonify(processDialog(req))
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000, debug=True)   # debug=True를 해야 바로바로 수정이 가능
@@ -324,6 +396,8 @@ cmd에서 ipconfig
 
 ![image-20200205174639696](images/image-20200205174639696.png)
 
+> ngrok http 3000
+>
 > 노란 표시된것을 url에 복사
 >
 > dialogflow에 fulfillment로
@@ -345,6 +419,10 @@ cmd에서 ipconfig
 
 
 ![image-20200205175024395](images/image-20200205175024395.png)
+
+
+
+
 
 
 
