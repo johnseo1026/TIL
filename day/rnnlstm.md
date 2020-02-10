@@ -2,11 +2,11 @@
 
 > 일반 신경망 - 개별데이터를 독립적으로 학습
 >
-> ![image-20200210163717493](C:/Users/student/Desktop/git/TIL/day/images/image-20200210163717493.png)
+> ![image-20200210163717493](images/image-20200210163717493.png)
 >
 > 순환 신경망 = 시계열 데이터 학습에 적합
 >
-> ![image-20200210163738787](C:/Users/student/Desktop/git/TIL/day/images/image-20200210163738787.png)
+> ![image-20200210163738787](images/image-20200210163738787.png)
 
 > 은닉층의 노드에서 활성화 함수를 통해 나온 결과값을 출력과 은닉층 노드의 다음 계산의 입력으로 보냄
 >
