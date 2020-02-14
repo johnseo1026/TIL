@@ -77,6 +77,36 @@ urlpatterns = [
 ]
 ```
 
+### ajax 추가 후 urls.py
+
+```python
+"""mysite URL Configuration
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/3.0/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('ajax/', include('ajax.urls')),
+    path('', include('myapp.urls')),
+    path('admin/', admin.site.urls),
+]
+```
+
+
+
 ### settings.py
 
 ![image-20200213104750071](images/image-20200213104750071.png)
@@ -276,7 +306,23 @@ f.close()
 
 ![image-20200213111620077](images/image-20200213111620077.png)
 
+### ajax 폴더
 
+#### calc.html
+
+밑에 ajax 참고
+
+#### login.html
+
+밑에 ajax 참고
+
+#### upload.html
+
+밑에 ajax 참고
+
+#### runpython.html
+
+밑에 ajax 참고
 
 ## static
 
@@ -309,3 +355,325 @@ f.close()
 
 
 
+## ajax
+
+![image-20200214095408523](images/image-20200214095408523.png)
+
+> ajax 폴더를 만들어 주고  서버실행
+>
+> mysite-urls에 path('ajax/', include('ajax.urls')) 추가
+>
+> ajax폴더에 my app에서 urls.py  복사
+
+### urls.py
+
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.index),
+    path('calcform', views.calcForm),
+    path('calc', views.calc),
+    path('loginform', views.loginForm),
+    path('login', views.login),
+    path('uploadform', views.uploadForm),
+    path('upload', views.upload),
+    path('runpythonform', views.runpythonForm),
+    path('runpython', views.runpython),
+]
+```
+
+### views.py
+
+```python
+from django.shortcuts import render
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+import sys
+from io import StringIO
+
+def index(request) :
+    return HttpResponse("Hello ajax~~~")
+
+def calcForm(request) :
+    return render(request, "ajax/calc.html")
+
+def calc(request) :
+    op1 = int(request.GET["op1"])
+    op2 = int(request.GET["op2"])
+    result = op1 + op2
+    return JsonResponse({'error':0, 'result':result})
+
+def loginForm(request) :
+    return render(request, "ajax/login.html")
+
+def login(request):
+    id = request.GET["id"]
+    pwd = request.GET["pwd"]
+    if id == pwd :
+        request.session["user"] = id
+        return JsonResponse({'error': 0})
+    return JsonResponse({'error': -1, 'message': 'id/pwd를 확인해주세요'})
+
+
+def uploadForm(request) :
+    return render(request, "ajax/upload.html")
+
+def upload(request) :
+    file = request.FILES['file1']
+    filename = file._name
+    fp = open(settings.BASE_DIR + "/static/" + filename, "wb")
+    for chunk in file.chunks() :
+        fp.write(chunk)
+    fp.close()
+    return HttpResponse("upload~")
+
+def runpythonForm(request) :
+    return render(request, "ajax/runpython.html")
+
+glo = {}
+loc = {}
+
+def runpython(request) :
+    code = request.GET["code"]
+
+    original_stdout = sys.stdout
+    sys.stdout = StringIO()
+    exec(code, glo, loc)
+    contents = sys.stdout.getvalue()
+    sys.stdout = original_stdout
+    contents = contents.replace("\n", "<br>")
+
+    contents = "<font color=red>result</font><br>" + contents
+    return HttpResponse(contents)
+```
+
+
+
+- 밑에 html들의 위치는 이곳이 아닌 templates-ajax 임
+
+### calc.html
+
+> templates.폴더에 ajax폴더 하나 만들고 calc.html 만들기
+>
+> html파일은 다 ajax폴더 안에 넣어놔야함
+
+```html
+<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+
+
+<input type=text name=op1 id="op1" value="5">  + <input type=text name=op2 id="op2">
+<button id="btnCalc">=</button> <input type=text name="result" id="result">
+
+
+<script>
+    /*
+    op1 = document.getElementById("op1");
+    op1.value = 20;
+    alert(op1.value);
+
+    $("#op1").val(40);
+    alert(  $("#op1").val()  );
+    */
+
+    $("#btnCalc").click( function() {
+
+        /*
+        op1 = parseInt($("#op1").val());
+        op2 = parseInt($("#op2").val());
+        $("#result").val(op1+op2);
+        */
+
+        var param = {op1:$("#op1").val(), op2:$("#op2").val()};
+        $.get("/ajax/calc", param, function(data) {
+            alert(JSON.stringify(data));
+            //console.log(JSON.stringify(data));
+            $("#result").val(data.result);
+        });
+    
+    });
+
+
+
+</script>
+```
+
+![image-20200214102058827](images/image-20200214102058827.png)
+
+이런식으로 나옴
+
+
+
+### login.html
+
+```html
+<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+아이디 <input type=text name=id id="id" > <br>
+암호   <input type=password name=pwd id="pwd"> <br>
+<button id="btnCalc">로그인</button>
+
+<script>
+     $("#btnCalc").click( function() {
+           var param = {id:$("#id").val(), pwd:$("#pwd").val()};
+           $.get("/ajax/login", param, function(data) {
+             console.log(JSON.stringify(data));
+             if ( data.error == 0) location.href = "/ajax"
+             else {
+                $("#id").focus();
+                $("#id").val("");
+                $("#pwd").val("");
+                alert(data.message);
+             }
+           });
+     });
+</script>
+```
+
+> id =  pwd 맞을경우
+>
+> ![image-20200214165137675](images/image-20200214165137675.png)
+>
+> ![image-20200214165203939](images/image-20200214165203939.png)
+>
+> 
+>
+> id != pwd 틀릴경우
+>
+> ![image-20200214165220155](images/image-20200214165220155.png)
+
+### upload.html
+
+```html
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<style>
+  .progress { position:relative; width:400px; border: 1px solid #ddd; padding: 1px; border-radius: 3px; }
+  .bar { background-color: #B4F5B4; width:0%; height:20px; border-radius: 3px; }
+  .percent { position:absolute; display:inline-block; top:3px; left:48%; }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="http://malsup.github.com/jquery.form.js"></script>
+
+
+// http://127.0.0.1:8000/ajax/upload
+<form action="upload" enctype="multipart/form-data" method="POST">
+    {% csrf_token %}
+      <input name="title" value="테스트1"/>
+      <input name="contents" value="테스트 자료입니다."/>
+      <input type="file" name="file1"/>
+      <input type="submit" value="upload">
+</form>
+
+
+
+
+<div class="progress">
+    <div class="bar"></div>
+    <div class="percent">0%</div>
+</div>
+<div id="status"></div>
+
+    
+<script>
+$(function() {
+    var bar = $('.bar');
+    var percent = $('.percent');
+    var status = $('#status');
+    $('form').ajaxForm({
+        beforeSend: function() {
+            status.empty();
+            var percentVal = '0%';
+            bar.width(percentVal);
+            percent.html(percentVal);
+        },
+        uploadProgress: function(event, position, total, percentComplete) {
+            var percentVal = percentComplete + '%';
+            bar.width(percentVal);
+            percent.html(percentVal);
+        },
+        complete: function(xhr) {
+           status.html("성공")
+        },
+       error:function(e){
+          status.html("실패")
+       }
+
+    });
+});
+
+ </script>
+```
+
+![image-20200214165255972](images/image-20200214165255972.png)
+
+![image-20200214165352651](images/image-20200214165352651.png)
+
+업로드되면 mysite-staticdp 저장
+
+![image-20200214165452867](images/image-20200214165452867.png)
+
+### runpython.html
+
+```html
+<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+
+<button id="btnAdd">add cell</button>
+<div id="cells" >
+<div id="cell">
+<textarea rows="10" cols="40" id="code"> </textarea>
+<button id="btnRun">실행</button>
+<div id="result"> result </div>
+</div>
+</div>
+<script>
+     $("#btnRun").click( function() {
+           var param = {code:$("#code").val()};
+           $.get("/ajax/runpython", param, function(data) {
+              $("#result").html(data)
+           });
+     });
+     $("#btnAdd").click( function() {
+        $("#cells").append($("#cell").clone())
+      });
+
+</script>
+```
+
+![image-20200214170908605](images/image-20200214170908605.png)
+
+![image-20200214170926076](images/image-20200214170926076.png)
+
+![image-20200214170949337](images/image-20200214170949337.png)
+
+셀추가도 가능
+
+
+
+# aws 연결하기
+
+aws 연결해서 위의 설치과정을 거친후 접속
+
+압축해서 올린다음 unzip 파일이름.zip
+
+![image-20200214175501661](images/image-20200214175501661.png)
+
+> cd mysite
+>
+> python.py runserver 0.0.0.0:8991
+
+![image-20200214175537111](images/image-20200214175537111.png)
+
+서버 열때 포트번호 100더한것을 사용하였음
