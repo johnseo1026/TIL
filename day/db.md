@@ -481,6 +481,9 @@ def listUser(request) :
         userid = request.GET.get("userid", "")
         if userid != "":
             User.objects.all().get(userid=userid).delete()
+            
+            #User.objects.all().filter(userid=userid)[0].delete()  #무조건 1번째가 필터, 조건에 맞는게 없을순있다.
+            
             return redirect("/listuser")
     
         q = request.GET.get("q", "")
