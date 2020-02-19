@@ -1,5 +1,3 @@
-
-
 # db
 
 > 터미널 창 하나에서 python manage.py runserver
@@ -745,7 +743,7 @@ data.filter(Q(age__gte=20) | Q(name__contains="유"))
 
 # -------------------------------------------------------------------
 
-## django db  (ORM)2
+## django db  (ORM) 이용하는 blog 
 
 ### terminal
 
@@ -923,6 +921,159 @@ urlpatterns = [
 
 ### blog 폴더
 
+#### views.py
+
+```python
+from django.shortcuts import render, get_object_or_404,redirect
+from django.http import HttpResponse
+from blog.models import Post
+from django.views.generic import View
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from django.forms import Form
+from django.forms import CharField, Textarea, ValidationError
+
+
+def list(request) :
+    username = request.session["username"]
+    user = User.objects.get(username=username)
+    data = Post.objects.all().filter(author=user)
+    context = {"data":data, "username":username}
+    return render(request, "blog/list.html", context)
+
+def detail(request, pk) :
+    p = get_object_or_404(Post, pk=pk)
+    return render(request, "blog/detail.html", {"d":p})
+
+
+class PostEditView(View) :
+    def get(self, request, pk):
+        if pk == 0 :
+            form = PostForm()
+        else :
+            post = get_object_or_404(Post, pk=pk)
+            form = PostForm(initial={'title': post.title, 'text': post.text})
+        return render(request, "blog/edit.html", {"form":form})
+    
+    def post(self, request, pk):
+        form = PostForm(request.POST)
+        
+        if form.is_valid():
+            if pk == 0:     # 신규작성모드
+                username = request.session["username"]
+                user = User.objects.get(username=username)
+                Post.objects.create(title=form['title'].value(), text=form['text'].value(), author=user)
+            else :     # 수정작성모드
+                post = get_object_or_404(Post, pk=pk)
+                post.title = form['title'].value()
+                post.text = form['text'].value()
+                post.publish()
+            return redirect("list")
+        return render(request, "blog/edit.html", {"form": form})
+
+def validator(value) :
+    if len(value) < 5 : raise  ValidationError("길이가 너무 짧아요");
+
+class PostForm(Form):
+    title = CharField(label='제목', max_length=20, validators=[validator])
+    text = CharField(label="내용", widget=Textarea)
+
+class LoginView(View) :
+    def get(self, request):
+        return render(request, "blog/login.html")
+
+    def post(self, request):
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(username=username, password=password)
+        if user == None :
+            return redirect("login")   #경로명이 아닌 이름
+        request.session["username"] = username
+        return redirect("list")   #경로명이 아닌 이름
+```
+
+#### views.py 2 (위랑 코드가 조금 다름)
+
+```python
+from django.shortcuts import render, get_object_or_404,redirect
+from django.http import HttpResponse
+from blog.models import Post
+from django.views.generic import View
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from django.forms import Form
+from django.forms import CharField, Textarea, ValidationError
+from django import forms
+
+
+def list(request) :
+    username = request.session["username"]
+    user = User.objects.get(username=username)
+    data = Post.objects.all().filter(author=user)
+    context = {"data":data, "username":username}
+    return render(request, "blog/list.html", context)
+
+def detail(request, pk) :
+    p = get_object_or_404(Post, pk=pk)
+    return render(request, "blog/detail.html", {"d":p})
+
+
+class PostEditView(View) :
+    def get(self, request, pk):
+        if pk == 0 :
+            form = PostForm()
+        else :
+            post = get_object_or_404(Post, pk=pk)
+            form = PostForm(instance=post)
+        return render(request, "blog/edit.html", {"form":form})
+
+    def post(self, request, pk):
+
+        username = request.session["username"]
+        user = User.objects.get(username=username)
+
+        if pk == 0:
+            form = PostForm(request.POST)
+        else:
+            post = get_object_or_404(Post, pk=pk)
+            form = PostForm(request.POST, instance=post)
+
+        if form.is_valid():
+            post = form.save(commit=False)
+            if pk == 0:
+                post.author = user
+                post.save()
+            else :
+                post.publish()
+            return redirect("list")
+        return render(request, "blog/edit.html", {"form": form})
+
+def validator(value) :
+    if len(value) < 5 : raise  ValidationError("길이가 너무 짧아요");
+
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'text']
+
+
+class LoginView(View) :
+    def get(self, request):
+        return render(request, "blog/login.html")
+
+    def post(self, request):
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(username=username, password=password)
+        if user == None :
+            return redirect("login")
+        request.session["username"] = username
+        return redirect("list")
+```
+
 #### models.py
 
 ```python
@@ -949,99 +1100,6 @@ class Post(models.Model):
         return self.title
 ```
 
-#### views.py
-
-```python
-from django.shortcuts import render, get_object_or_404,redirect
-from django.http import HttpResponse
-from blog.models import Post
-from django.views.generic import View
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
-from django.forms import Form
-from django.forms import CharField, Textarea, ValidationError
-# Create your views here.
-
-
-def index(request) :
-    return HttpResponse("ok")
-
-def index2(request, name) :
-    return HttpResponse("ok " + name)
-
-def index3(request, pk) :
-    #p = Post.objects.get(pk=pk)
-
-
-    p = get_object_or_404(Post, pk=pk)
-    return HttpResponse("ok " + p.title)
-
-
-def list(request) :
-    username = request.session["username"]
-    user = User.objects.get(username=username)
-    data = Post.objects.all().filter(author=user)
-    context = {"data":data, "username":username}
-    return render(request, "blog/list.html", context)
-
-def detail(request, pk) :
-    p = get_object_or_404(Post, pk=pk)
-    return render(request, "blog/detail.html", {"d":p})
-
-
-class PostView(View) :
-    def get(self, request):
-        return render(request, "blog/edit.html")
-
-    def post(self, request):
-
-        title = request.POST.get("title")
-        text = request.POST.get("text")
-        username = request.session["username"]
-        user = User.objects.get(username=username)
-        Post.objects.create(title=title, text=text, author=user)
-        return redirect("list")
-
-class PostEditView(View) :
-    def get(self, request, pk):
-        post = get_object_or_404(Post, pk=pk)
-        form = PostForm(initial={'title': post.title, 'text': post.text})
-        return render(request, "blog/edit.html", {"form":form, "pk":pk})
-
-    def post(self, request, pk):
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post = get_object_or_404(Post, pk=pk)
-            post.title = form['title'].value()
-            post.text = form['text'].value()
-            post.publish()
-            return redirect("list")
-        return render(request, "blog/edit.html", {"form": form, "pk": pk})
-
-def validator(value) :
-    if len(value) < 5 : raise  ValidationError("길이가 너무 짧아요");
-
-class PostForm(Form):
-    title = CharField(label='제목', max_length=20, validators=[validator])
-    text = CharField(label="내용", widget=Textarea)
-
-class LoginView(View) :
-    def get(self, request):
-        return render(request, "blog/login.html")
-
-    def post(self, request):
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-
-        user = authenticate(username=username, password=password)
-        if user == None :
-            return redirect("login")  #경로명이 아닌 이름
-        request.session["username"] = username
-        return redirect("list")  #경로명이 아닌 이름
-```
-
-
-
 #### apps.py
 
 ```python
@@ -1051,8 +1109,6 @@ from django.apps import AppConfig
 class BlogConfig(AppConfig):
     name = 'blog'
 ```
-
-
 
 #### admin.py
 
@@ -1072,22 +1128,21 @@ admin.site.register(Post)
 ```python
 from django.urls import path
 from . import views
+
  
 urlpatterns = [
-    path('', views.index),
+    #path('', views.index),
     #path('<name>/', views.index2),
     #path('<int:pk>/detail', views.index3),
-    
+
     path('login/', views.LoginView.as_view(), name="login"),
-    
-    
     path('list/', views.list, name="list"),
-    path('<int:pk>/detail/', views.detail, name="detail"),
-    path('add/', views.PostView.as_view(), name="add"),
-    
+    path('<int:pk>/detail/', views.detail, name='detail'),
     path('<int:pk>/edit/', views.PostEditView.as_view(), name="edit"),
 ]
 ```
+
+
 
 ### templates 폴더
 
@@ -1099,7 +1154,7 @@ urlpatterns = [
 {% extends 'blog/base.html' %}
 
 {% block content %}
-
+<a href="{% url 'edit' 0%}">Add </a> <br>
 {%  for d in data %}
 <a href="{% url 'detail' d.pk %}"> {{d.title}} </a> <br>
 {% endfor %}
@@ -1110,7 +1165,7 @@ urlpatterns = [
 ##### base.html
 
 ```html
-<font color="skyblue"><h1>My blog</h1> </font><br>
+<font color="skyblue"><h1>come on!!!!!!</h1> </font><br>
  로그인 사용자:{{username}}<br>
 
 
@@ -1118,9 +1173,9 @@ urlpatterns = [
 {% endblock %}
 
 
-<br><br><br><br><br><br><br><br><br>
-copy right  <br>
-서울특별시 강남구 선릉역 부근
+<br><br><br>
+copy right..... <br>
+서울특별시 ........
 ```
 
 ##### detail.html
@@ -1137,6 +1192,7 @@ copy right  <br>
 
 <a href="{% url 'edit' d.pk  %}">수정 </a>
 
+
 {% endblock %}
 ```
 
@@ -1144,25 +1200,159 @@ copy right  <br>
 
 ```html
 <form action="{% url 'login' %}" method=post>
-    {% csrf_token %}
-    username <input type=text name=username> <br>
-    password <input type=password name=password> <br>
-    <input type=submit value="로그인">
+   {% csrf_token %}
+   username <input type=text  name=username >  <br>
+   password <input type=password  name=password >  <br>
+   <input type=submit value="로그인">
 </form>
 ```
 
 ##### edit.html
 
 ```html
-<form action="{% url 'edit' pk %}" method=post>
-   {% csrf_token %}
+<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 
+ <style>
+      .bg { background-color: #eeeeee; }
+      .bd { border: 1px solid #666666; }
+ </style>
+
+{% if form.title.value %}
+<h1>  수정하기 </h1>
+{% else %}
+<h1>  신규작성</h1>
+{% endif %}
+
+
+<form method=post>
+   {% csrf_token %}
    	{{ form.as_p }}
 
    <input type="submit" value="작성" >
 
 </form>
+
+<script>
+   $("#id_title").addClass('bg bd');
+</script>
 ```
+
+## 다른버전
+
+### blog 폴더
+
+#### views.py 다른 버전
+
+```python
+from django.shortcuts import render, get_object_or_404,redirect
+from django.http import HttpResponse
+from django.views.generic import View
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from django.forms import Form
+from django.forms import CharField, Textarea, ValidationError
+from django import forms
+#from blog.forms import PostForm
+from . import forms
+from . import models
+
+def list(request) :
+    username = request.session["username"]
+    user = User.objects.get(username=username)
+    data = models.Post.objects.all().filter(author=user)
+    context = {"data":data, "username":username}
+    return render(request, "blog/list.html", context)
+
+def detail(request, pk) :
+    p = get_object_or_404(models.Post, pk=pk)
+    return render(request, "blog/detail.html", {"d":p})
+
+
+class PostEditView(View) :
+    def get(self, request, pk):
+        if pk == 0 :
+            form = forms.PostForm()
+        else :
+            post = get_object_or_404(models.Post, pk=pk)
+            form = forms.PostForm(instance=post)
+        return render(request, "blog/edit.html", {"form":form})
+
+    def post(self, request, pk):
+
+        username = request.session["username"]
+        user = User.objects.get(username=username)
+
+        if pk == 0:
+            form = forms.PostForm(request.POST)
+        else:
+            post = get_object_or_404(models.Post, pk=pk)
+            form = forms.PostForm(request.POST, instance=post)
+
+        if form.is_valid():
+            post = form.save(commit=False)
+            if pk == 0:
+                post.author = user
+                post.save()
+            else :
+                post.publish()
+            return redirect("list")
+        return render(request, "blog/edit.html", {"form": form})
+
+
+class LoginView(View) :
+    def get(self, request):
+        return render(request, "blog/login.html")
+
+    def post(self, request):
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(username=username, password=password)
+        if user == None :
+            return redirect("login")
+        request.session["username"] = username
+        return redirect("list")
+```
+
+#### forms.py (views.py  다른 버전과만 이어지는 것)
+
+```python
+from blog.models import Post
+from django.forms import ValidationError
+from django import forms
+
+
+def validator(value) :
+    if len(value) < 5 : raise  ValidationError("길이가 너무 짧아요");
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'text']
+
+    def __init__(self, *args, **kwargs):
+        super(PostForm, self).__init__(*args, **kwargs)
+        self.fields['title'].validators = [validator]
+```
+
+### templates 폴더
+
+#### list.html 다른버전
+
+```html
+{% extends 'blog/base.html' %}
+
+{% block content %}
+<a href="{% url 'edit' 0 'add'%}">Add </a> <br>
+{%  for d in data %}
+<a href="{% url 'edit' d.pk 'detail'%}"> {{d.title}} </a> <br>
+{% endfor %}
+
+{% endblock %}
+```
+
+
 
 
 
@@ -1249,25 +1439,29 @@ chil
 >
 > http://localhost:8000/blog/list/ 로 가게됨
 >
-> ![image-20200218172413800](images/image-20200218172413800.png)
+> ![image-20200219094206458](images/image-20200219094206458.png)
 >
 > 내가 쓴 글들이 보인다. 저중에서 하나를 클릭해보면
 >
-> ![image-20200218172523492](images/image-20200218172523492.png)
+> ![image-20200219094457902](images/image-20200219094457902.png)
 >
 > 이런식으로 뜨고 수정 할 수 있다.
 >
 > loalhost:8000/blog/(숫자)/edit/ 로 들어가진다
 >
-> ![image-20200218172547308](images/image-20200218172547308.png)
+> ![image-20200219094544954](images/image-20200219094544954.png)
 >
-> 수정하는 문장이 너무 짧으면 이렇게 뜬다 5글자 이상으로 설정 해둠 views.py에
+> 
 >
-> ![image-20200218172719113](images/image-20200218172719113.png)
+> ![image-20200219094609917](images/image-20200219094609917.png)
+>
+> 수정하는 문장이 너무 짧으면 이렇게 뜬다 5글자 이상으로 views.py에 설정 해둠 
+>
+> 
 >
 > 수정하고 난 모습
 >
-> ![image-20200218172813144](images/image-20200218172813144.png)
+> ![image-20200219094737310](images/image-20200219094737310.png)
 
 ### 번외
 
@@ -1292,3 +1486,468 @@ chil
 > ![image-20200218173143615](images/image-20200218173143615.png)
 >
 > author에서 유저를 선택하고 쓴후 save하면 블로그에 글이 올라간다
+
+# -------------------------------------------------------------------
+
+## 게시판 만들기
+
+> python manage.py startapp myboard  로 myboard 폴더 생성
+>
+> blog폴더에서 위의 5개 파이썬 파일 복사 template
+
+### terminal
+
+> python manage.py startapp myboard         -> myboard 생성
+>
+> python manage.py makemigrations
+>
+> python manage.py migrate
+
+### mysite 폴더
+
+#### settings.py
+
+```python
+"""
+Django settings for mysite project.
+
+Generated by 'django-admin startproject' using Django 3.0.3.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/3.0/topics/settings/
+
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/3.0/ref/settings/
+"""
+
+import os
+
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'kwznv_of4)-p6&x@xfw8882^tmrdv6gvqocldqp^oln#bdbyon'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = []
+
+
+# Application definition
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django_extensions',
+    'myapp',
+    'blog',
+    'myboard',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'mysite.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': ['templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'mysite.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/3.0/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+
+
+# Password validation
+# https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/3.0/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+
+USE_L10N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/3.0/howto/static-files/
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
+```
+
+![image-20200219142352810](images/image-20200219142352810.png)
+
+myboard 추가
+
+#### urls.py
+
+```python
+"""mysite URL Configuration
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/3.0/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('myboard/', include('myboard.urls')),
+    path('blog/', include('blog.urls')),
+    path('ajax/', include('ajax.urls')),
+    path('', include('myapp.urls')),
+    path('admin/', admin.site.urls),
+]
+```
+
+### myboard 폴더
+
+#### views.py
+
+```python
+from django.shortcuts import render, get_object_or_404,redirect
+from django.http import HttpResponse
+from django.views.generic import View
+from django.contrib.auth.models import User
+from django.core.paginator import Paginator
+
+from . import forms
+from . import models
+from . import apps
+
+class BoardView(View) :
+    def get(self, request, category, pk, mode):
+        if  mode == 'add' :
+            form = forms.BoardForm()
+        elif mode == 'list' :
+            username = request.session["username"]
+            user = User.objects.get(username=username)
+            data = models.Board.objects.all().filter(category=category)
+            
+            context = {"data": data, "username": username, "category": category}
+            return render(request, apps.APP + "/list.html", context)
+        elif mode ==  "detail" :
+            p = get_object_or_404(models.Board, pk=pk)
+            p.cnt += 1
+            p.save()
+            return render(request, apps.APP +"/detail.html", {"d": p,"category":category})
+        elif mode == "edit" :
+            board = get_object_or_404(models.Board, pk=pk)
+            form = forms.BoardForm(instance=board)
+        else :
+            return HttpResponse("error page")
+
+        return render(request, apps.APP +"/edit.html", {"form":form})
+
+    def post(self, request, category, pk, mode):
+
+        username = request.session["username"]
+        user = User.objects.get(username=username)
+
+        if pk == 0:
+            form = forms.BoardForm(request.POST)
+        else:
+            board = get_object_or_404(models.Board, pk=pk)
+            form = forms.BoardForm(request.POST, instance=board)
+
+        if form.is_valid():
+            board = form.save(commit=False)
+            if pk == 0:
+                board.author = user
+            board.category = category
+            board.save()
+            return redirect("myboard", category, 0, 'list')
+        return render(request, apps.APP + "/edit.html", {"form": form})
+```
+
+#### models.py
+
+```python
+from django.db import models
+from django.utils import timezone
+
+
+# Create your models here.
+
+class Board(models.Model):
+    author = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    text = models.TextField()  # 글자수에 제한 없는 텍스트
+    created_date = models.DateTimeField(
+        default=timezone.now)  # 날짜와 시간
+    cnt = models.IntegerField(default=0)
+    image = models.CharField(max_length=200, null=True, blank=True)
+    category = models.CharField(max_length=10, default='common')
+
+
+
+    def __str__(self):
+        return self.title
+```
+
+#### apps.py
+
+```python
+from django.apps import AppConfig
+
+
+APP = "myboard"
+
+class MyboardConfig(AppConfig):
+    name = 'myboard'
+```
+
+#### admin.py
+
+```python
+from django.contrib import admin
+from . import models
+
+
+
+admin.site.register(models.Board)
+```
+
+#### urls.py
+
+```python
+from django.urls import path
+from . import views
+from django.shortcuts import redirect
+
+
+urlpatterns = [
+    path('<category>/<int:pk>/<mode>/', views.BoardView.as_view(), name="myboard"),
+    path('', lambda request: redirect('myboard', 'common', 0, 'list')),
+
+]
+```
+
+#### forms.py
+
+```python
+from django.forms import ValidationError
+from django import forms
+from . import models
+
+
+def validator(value) :
+    if len(value) < 5 : raise  ValidationError("길이가 너무 짧아요");
+
+class BoardForm(forms.ModelForm):
+    class Meta:
+        model = models.Board
+        fields = ['title', 'text']
+
+    def __init__(self, *args, **kwargs):
+        super(BoardForm, self).__init__(*args, **kwargs)
+        self.fields['title'].validators = [validator]
+```
+
+
+
+### templates 폴더
+
+#### myboard 폴더 생성
+
+##### list.html
+
+```html
+{% extends 'myboard/base.html' %}
+
+{% block content %}
+<a href="{% url 'myboard' category 0 'add' %}">글쓰기
+<style type="text/css"> 
+a { text-decoration:none } 
+</style> 
+</a> <br><br>
+{%  for d in data %}
+&middot;<a href="{% url 'myboard' category d.pk 'detail' %}"> {{d.title}} 조회수 {{d.cnt}} 
+<style type="text/css"> 
+a { text-decoration:none } 
+</style> 
+</a> <br>
+{% endfor %}
+
+{% endblock %}
+```
+
+##### base.html
+
+```html
+<font color="skyblue"><h1>게시판 만들기</h1> </font><br>
+ 로그인 사용자:{{username}}<br>
+
+<a href="/myboard/data/0/list"> 자료실 </a>
+<a href="/myboard/common/0/list"> 일반게시판 </a>
+<a href="/myboard/etc/0/list"> 기타 </a> <br>
+
+
+
+{% block content %}
+{% endblock %}
+
+
+<br><br><br>
+<hr color = 'black'>
+copy right..... <br>
+서울특별시 ........
+```
+
+##### detail.html
+
+```html
+{% extends 'myboard/base.html' %}
+
+게시물 보기 <br>
+
+{% block content %}
+
+{{d.title}}  <br>
+{{d.text|linebreaks}}
+
+<a href="{% url 'myboard' category d.pk  'edit' %}">수정 </a>
+
+
+{% endblock %}
+```
+
+##### login.html
+
+```html
+<form action="{% url 'login' %}" method=post>
+   {% csrf_token %}
+   username <input type=text  name=username >  <br>
+   password <input type=password  name=password >  <br>
+   <input type=submit value="로그인">
+</form>
+```
+
+##### edit.html
+
+```html
+<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+ <style>
+      .bg { background-color: #eeeeee; }
+      .bd { border: 1px solid #666666; }
+ </style>
+
+{% if form.title.value %}
+<h1>  수정하기 </h1>
+{% else %}
+<h1>  신규작성</h1>
+{% endif %}
+
+
+<form method=post>
+   {% csrf_token %}
+   	{{ form.as_p }}
+
+   <input type="submit" value="작성" >
+
+</form>
+
+<script>
+   $("#id_title").addClass('bg bd');
+</script>
+```
+
+## 결과물
+
+- 자료실
+
+![image-20200219173441296](images/image-20200219173441296.png)
+
+- 일반게시판
+
+![image-20200219173348742](images/image-20200219173348742.png)
+
+- 글쓰기
+
+![image-20200219173640264](images/image-20200219173640264.png)
+
+![image-20200219173651239](images/image-20200219173651239.png)
+
+- 쓴 글을 누르면 수정 할수있음
+
+![image-20200219173737243](images/image-20200219173737243.png)
+
+
+
+- 기타
+
+![image-20200219173519983](images/image-20200219173519983.png)
+
+
+
