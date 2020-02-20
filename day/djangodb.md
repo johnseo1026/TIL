@@ -1951,3 +1951,179 @@ copy right..... <br>
 
 
 
+# -------------------------------------------------------------------
+
+## 페이지 추가
+
+### myboard 폴더
+
+#### views.py
+
+```python
+from django.shortcuts import render, get_object_or_404,redirect
+from django.http import HttpResponse
+from django.views.generic import View
+from django.contrib.auth.models import User
+from django.core.paginator import Paginator
+from django.urls import reverse
+
+from . import forms
+from . import models
+from . import apps
+from django.urls import resolve
+
+
+def page(request):
+    datas = [{"id":1, "name":"홍길동1"},
+            {"id":2, "name":"홍길동2"},
+            {"id":3, "name":"홍길동3"},
+            {"id":4, "name":"홍길동4"},
+            {"id":5, "name":"홍길동5"},
+            {"id":6, "name":"홍길동6"},
+            {"id":7, "name":"홍길동7"},
+            ]
+    page = request.GET.get("page", 1)
+    
+    p = Paginator(datas, 3)
+    subs = p.page(page)  #(page-1)*3:page*3
+    
+    return render(request, "myboard/page,html", {"datas":subs})
+
+
+
+
+class BoardView(View) :
+    def get(self, request, category, pk, mode):
+        if  mode == 'add' :
+            form = forms.BoardForm()
+        elif mode == 'list' :
+            username = request.session["username"]
+            user = User.objects.get(username=username)
+            data = models.Board.objects.all().filter(category=category)
+            
+            page = request.GET.get("page", 1)
+            p = Paginator(data, 3)
+            subs = p.page(page)  #(page-1)*3:page*3
+            
+            context = {"datas": subs, "username": username, "category": category}
+            
+            return render(request, apps.APP + "/list.html", context)
+        elif mode ==  "detail" :
+            p = get_object_or_404(models.Board, pk=pk)
+            p.cnt += 1
+            p.save()
+            return render(request, apps.APP +"/detail.html", {"d": p,"category":category})
+        elif mode == "edit" :
+            board = get_object_or_404(models.Board, pk=pk)
+            form = forms.BoardForm(instance=board)
+        else :
+            return HttpResponse("error page")
+
+        return render(request, apps.APP +"/edit.html", {"form":form})
+
+    def post(self, request, category, pk, mode):
+
+        username = request.session["username"]
+        user = User.objects.get(username=username)
+
+        if pk == 0:
+            form = forms.BoardForm(request.POST)
+        else:
+            board = get_object_or_404(models.Board, pk=pk)
+            form = forms.BoardForm(request.POST, instance=board)
+
+        if form.is_valid():
+            board = form.save(commit=False)
+            if pk == 0:
+                board.author = user
+            board.category = category
+            board.save()
+            return redirect("myboard", category, 0, 'list')
+        return render(request, apps.APP + "/edit.html", {"form": form})
+```
+
+page 추가
+
+### templates 폴더
+
+#### myboard 폴더
+
+##### page.html 추가
+
+```html
+{%  for data in datas %}
+
+   {{data.id}}  / {{data.name}}  <br>
+
+{% endfor %}
+
+{% if datas.has_other_pages %}
+        {% if datas.has_previous %}
+          <a href="?page={{ datas.previous_page_number }}">&laquo;</a>
+        {% else %}
+          <span>&laquo;</span>
+        {% endif %}
+
+        {% for i in datas.paginator.page_range %}
+          {% if datas.number == i %}
+            <span>{{ i }} </span>
+          {% else %}
+            <a href="?page={{ i }}">{{ i }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if datas.has_next %}
+            <a href="?page={{ datas.next_page_number }}">&raquo;</a>
+        {% else %}
+            <span>&raquo;</span>
+        {%endif %}
+    {%endif%}
+```
+
+##### list.html
+
+```html
+{% extends 'myboard/base.html' %}
+
+{% block content %}
+<a href="{% url 'myboard' category 0 'add' %}">글쓰기
+<style type="text/css"> 
+a { text-decoration:none } 
+</style> 
+</a> <br><br>
+{%  for d in datas %}
+&middot;<a href="{% url 'myboard' category d.pk 'detail' %}"> {{d.title}} 조회수 {{d.cnt}} 
+<style type="text/css"> 
+a { text-decoration:none } 
+</style> 
+</a> <br>
+{% endfor %}
+
+{% if datas.has_other_pages %}
+        {% if datas.has_previous %}
+          <a href="?page={{ datas.previous_page_number }}">&laquo;</a>
+        {% else %}
+          <span>&laquo;</span>
+        {% endif %}
+
+        {% for i in datas.paginator.page_range %}
+          {% if datas.number == i %}
+            <span>{{ i }} </span>
+          {% else %}
+            <a href="?page={{ i }}">{{ i }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if datas.has_next %}
+            <a href="?page={{ datas.next_page_number }}">&raquo;</a>
+        {% else %}
+            <span>&raquo;</span>
+        {%endif %}
+    {%endif%}
+
+{% endblock %}
+```
+
+## 결과물
+
+![image-20200220103119659](images/image-20200220103119659.png)
+
+아래에 페이지를 만들수있다
