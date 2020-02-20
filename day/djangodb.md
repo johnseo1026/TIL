@@ -2122,8 +2122,261 @@ a { text-decoration:none }
 {% endblock %}
 ```
 
+##### edit.html
+
+```html
+<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+ <style>
+      .bg { background-color: #eeeeee; }
+      .bd { border: 1px solid #666666; }
+ </style>
+
+{% if form.title.value %}
+<h1>  수정하기 </h1>
+{% else %}
+<h1>  신규작성</h1>
+{% endif %}
+
+
+<form method=post>
+   {% csrf_token %}
+   	{{ form.as_p }}
+
+   <input type="submit" value="작성" >
+    
+    <input type="hidden" name="page" value="2">
+
+</form>
+
+<script>
+   $("#id_title").addClass('bg bd');
+</script>
+```
+
 ## 결과물
 
 ![image-20200220103119659](images/image-20200220103119659.png)
 
 아래에 페이지를 만들수있다
+
+# -------------------------------------------------------------------
+
+## get & del
+
+### myboard 폴더
+
+#### views.py
+
+```python
+from django.shortcuts import render, get_object_or_404,redirect
+from django.http import HttpResponse, JsonResponse
+from django.views.generic import View
+from django.contrib.auth.models import User
+from django.core.paginator import Paginator
+from django.urls import reverse
+
+from . import forms
+from . import models
+from . import apps
+from django.urls import resolve
+
+
+def page(request):
+    datas = [{"id":1, "name":"홍길동1"},
+            {"id":2, "name":"홍길동2"},
+            {"id":3, "name":"홍길동3"},
+            {"id":4, "name":"홍길동4"},
+            {"id":5, "name":"홍길동5"},
+            {"id":6, "name":"홍길동6"},
+            {"id":7, "name":"홍길동7"},
+            ]
+    page = request.GET.get("page", 1)
+    p = Paginator(datas, 3)
+    subs = p.page(page)  #(page-1)*3:page*3
+    return render(request, "myboard/page,html", {"datas":subs})
+
+def ajaxdel(request):
+    pk = request.GET.get('pk')
+    board = models.Board.objects.get(pk=pk)
+    #board.delete()
+    return JsonResponse({'error':'0'})
+
+def ajaxget(request):
+    page = request.GET.get("page",1)
+    
+    datas = models.Board.objects.all().filter(category='common')
+    page = int(page)
+    subs = datas[(page-1)*3:(page)*3]
+    
+    datas = {"datas" : [{"pk":data.pk, "title":data.title, "cnt":data.cnt} for data in subs]}
+    
+    return JsonResponse(datas, json_dumps_params = {'ensure_ascii':False})   # 한글깨지는거 바꿔줌
+    #p = Paginator(datas, 3)
+    #subs = p.page(page)
+
+
+class BoardView(View) :
+    def get(self, request, category, pk, mode):
+        if  mode == 'add' :
+            form = forms.BoardForm()
+        elif mode == 'list' :
+            username = request.session["username"]
+            user = User.objects.get(username=username)
+            data = models.Board.objects.all().filter(category=category)
+            
+            page = request.GET.get("page", 1)
+            p = Paginator(data, 3)
+            subs = p.page(page)  #(page-1)*3:page*3
+            
+            context = {"datas": subs, "username": username, "category": category}
+            
+            return render(request, apps.APP + "/list.html", context)
+        elif mode ==  "detail" :
+            p = get_object_or_404(models.Board, pk=pk)
+            p.cnt += 1
+            p.save()
+            return render(request, apps.APP +"/detail.html", {"d": p,"category":category})
+        elif mode == "edit" :
+            board = get_object_or_404(models.Board, pk=pk)
+            form = forms.BoardForm(instance=board)
+        else :
+            return HttpResponse("error page")
+
+        return render(request, apps.APP +"/edit.html", {"form":form})
+
+    def post(self, request, category, pk, mode):
+
+        username = request.session["username"]
+        user = User.objects.get(username=username)
+
+        if pk == 0:
+            form = forms.BoardForm(request.POST)
+        else:
+            board = get_object_or_404(models.Board, pk=pk)
+            form = forms.BoardForm(request.POST, instance=board)
+
+        if form.is_valid():
+            board = form.save(commit=False)
+            if pk == 0:
+                board.author = user
+            board.category = category
+            board.save()
+            return redirect("myboard", category, 0, 'list')
+        return render(request, apps.APP + "/edit.html", {"form": form})
+```
+
+
+
+## 결과물
+
+![image-20200220131327861](images/image-20200220131327861.png)
+
+![image-20200220172042872](images/image-20200220172042872.png)
+
+## jquerytest.html (static 폴더안)
+
+### getPage & deleteBoard
+
+```html
+<head>
+  <meta charset="UTF-8">
+</head>
+
+<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+
+<button id="btnMore">More</button>
+
+
+<div id="view">
+    <div id="item">
+    <a href=list?id=4> <span id=title>제목~~</span> </a>
+        조회수 <span id=cnt> 0 </span>
+        <a id='del' href=javascript:deleteBoard(1)>지우기</a>
+        <br>
+    <div>
+</div>
+    
+<script>
+    //$("#view").append("<a href=fds>데이터2</a><br>")
+    //$("#view").append("<a href=fds>데이터2</a><br>")
+    //$("#title").html("제목1")
+    //$("#cnt").text("10")
+    
+    
+    //item = $("#item").clone()
+    //$("#title", item).html("제목1")    // 전체문서가 아니라 서브노드인 item에서 "title"을 찾으라는 것
+    //$("#cnt", item).text("10")
+    
+    //$("#view").append(item)
+    
+    
+    //$("del").attr("href", "javascript:deleteBoard"(6));
+    
+    
+    
+    
+  //$("#item").hide();    // 저위에있는 제목~~~~~을 숨기는것
+   
+   var page = 1
+   
+   function deleteBoard(pk){
+       //alert(pk);
+       $.get("/myboard/ajaxdel", {pk:pk}, function(json) {
+           //alert(json.error);
+           $("#item_" + pk).remove();
+       });
+   }
+   function getPage(page) {
+		//json = {"datas": [{"pk": 1, "title": "\uac00\ub098\ub2e4\ub77c\ub9c8\ubc14\uc0ac\uc544", "cnt": 8}, {"pk": 2, "title": "\ud504\ub85c\uc81d\ud2b8?", "cnt": 6}, {"pk": 3, "title": "\uc22b\uc790\uac00 \uc624\ub974\ub098", "cnt": 4}]}
+       
+       $.get("/myboard/ajaxget", {page:page}, function(json) {
+        console.log(JSON.stringify(json));
+           if ( json.datas.length == 0) alert("마지막페이지 입니다.");
+           for (i = 0; i < json.datas.length; i++) {		
+            //console.log( json.datas[i].title);
+			item = $("#item").clone();
+            item.attr("id", "item_" + json.datas[i].pk);
+			item.show(); // 숨긴것을 상속받기때문에 show를 통해 보여준다
+			$("#title", item).html(json.datas[i].title);
+			$("#cnt", item).text(json.datas[i].cnt);      
+            $("#del", item).attr("href", "javascript:deleteBoard("+json.datas[i].pk+")");
+			$("#view").append(item);   					
+		}
+       });
+       
+          
+   }    
+   $("#btnMore").click( function() {  
+			page++;
+			getPage(page);
+   });
+   
+   getPage(page);
+    
+    $.get("/myboard/ajaxget", {page:1}, function(json) {
+        console.log(JSON.stringify(json));
+    });
+    
+
+</script>
+```
+
+## 결과물
+
+첫화면
+
+![image-20200220172147915](images/image-20200220172147915.png)
+
+더이상 불러올 게시물이 없을경우
+
+![image-20200220172128064](images/image-20200220172128064.png)
+
+지우기
+
+![image-20200220172300671](images/image-20200220172300671.png)
+
+잘 없어짐을 볼수있다
