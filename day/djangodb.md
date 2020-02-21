@@ -2558,7 +2558,7 @@ urlpatterns = [
 
 ## 결과물
 
-위의 코드를 하기위해서는 static/faces/chil(user) 폴더를 만들어줘야함 
+위의 코드를 하기위해서는 static/faces/chil(username) 폴더를 만들어줘야함 
 
 위의 5장의 사진은 미리 넣어둔 것
 
