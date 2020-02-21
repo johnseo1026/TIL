@@ -2380,3 +2380,192 @@ class BoardView(View) :
 ![image-20200220172300671](images/image-20200220172300671.png)
 
 잘 없어짐을 볼수있다
+
+# -------------------------------------------------------------------
+
+## 이미지 DB로 관리하기
+
+### sqlite
+
+![image-20200221141832289](images/image-20200221141832289.png)
+
+```sqlite
+CREATE TABLE myboard_image
+(id INTEGER PRIMARY KEY AUTOINCREMENT, author_id INTEGER NOT NULL,
+filename VARCHAR(50) NOT NULL,
+FOREIGN KEY (author_id) REFERENCES auth_user(id))
+```
+
+테이블 생성
+
+![image-20200221142312083](images/image-20200221142312083.png)
+
+새 레코드를 눌러 아래와 같이 입력하면
+
+![image-20200221142339961](images/image-20200221142339961.png)
+
+생성됨
+
+
+
+
+
+### Django 전용 python 해석기
+
+```python
+username = 'chil'
+
+sql = f"select id from auth_user where username='{username}'"
+
+cursor.execute(sql)
+
+author_id = cursor.fetchone()[0]
+print(author_id)
+```
+
+```python
+filename = 'face2.png'
+
+sql=f"""
+INSERT INTO myboard_image
+("author_id", "filename")
+VALUES ({author_id}, '{filename}')
+"""
+print(sql)
+```
+
+```
+INSERT INTO myboard_image
+("author_id", "filename")
+VALUES (2, 'face2.png')
+```
+
+```python
+v = cursor.execute(sql)   # 실행한 만큼 생성
+```
+
+![image-20200221142521665](images/image-20200221142521665.png)
+
+이렇게 생성됨을 볼수있다
+
+
+
+
+
+
+
+
+
+### myboard 폴더
+
+#### views.py
+
+```python
+from django.test import RequestFactory
+from django.conf import settings
+
+def dictfetchall(fetchall):    
+    datas=[]
+    for r in fetchall:
+        datas.append(dict(zip(['filename'],r)))
+    data={'datas': datas}
+    return data
+    
+    
+    
+def photolist(request):
+    username = "chil"
+
+
+    sql = f"""
+        select filename 
+        from myboard_image
+        where author_id = (select id from auth_user where username="{username}") 
+        """
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    result=cursor.fetchall()
+
+    context = dictfetchall(result)
+    return render(request,  "myboard/photolist.html", context)
+
+
+    
+
+def uploadForm(request) :
+    return render(request, "myboard/upload.html")
+
+
+def upload(request) :
+#     username = request.GET['username']
+    username = 'chil'
+    file = request.FILES['filename']
+    filename = file._name
+    fp = open(settings.BASE_DIR + "/static/faces/" + username + "/" + filename, "wb")
+    for chunk in file.chunks() :
+        fp.write(chunk)
+    fp.close()
+    return redirect("photolist")
+```
+
+#### urls.py
+
+```python
+from django.urls import path
+from . import views
+from django.shortcuts import redirect
+
+
+urlpatterns = [
+    path('', views.page),
+    path('ajaxdel', views.ajaxdel),
+    path('ajaxget', views.ajaxget),
+    path('uploadform', views.uploadForm),
+    path('upload', views.upload),
+    
+    path('photolist', views.photolist, name='photolist'),
+    path('<category>/<int:page>', views.listsql),
+    path('<category>/<int:pk>/<mode>/', views.BoardView.as_view(), name="myboard"),
+    #path('', lambda request: redirect('myboard', 'common', 0, 'list')),
+
+]
+```
+
+
+
+### templates 폴더
+
+#### myboard 폴더
+
+##### photolist.html 추가
+
+```python
+{{username}}<br>
+
+
+<form action="upload" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="filename"/>
+    <input type="submit" value="사진전송">
+    <input type="hidden" name="username" value="{{username}}">
+</form>
+
+{%  for d in datas %}
+<img src="/static/faces/chil/{{d.filename}}" width="100">
+
+{% endfor %}
+```
+
+## 결과물
+
+위의 코드를 하기위해서는 static/faces/chil(user) 폴더를 만들어줘야함 
+
+위의 5장의 사진은 미리 넣어둔 것
+
+![image-20200221172856581](images/image-20200221172856581.png)
+
+사진을 올리면 여기에도 떠야 하는데 여기서 코드가 뭔가 잘못되어있어서 폴더로만 저장이됨
+
+![image-20200221174526958](images/image-20200221174526958.png)
+
+폴더로 추가된 사진
